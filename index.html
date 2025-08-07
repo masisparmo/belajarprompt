@@ -370,10 +370,26 @@
         const showHowToBtn = document.getElementById('how-to-api-key-btn');
         const closeHowToBtn = document.getElementById('close-how-to-modal');
 
+        function showCustomAlert(message, isError = true) {
+            const tempAlert = document.createElement('div');
+            tempAlert.style.position = 'fixed';
+            tempAlert.style.top = '20px';
+            tempAlert.style.left = '50%';
+            tempAlert.style.transform = 'translateX(-50%)';
+            tempAlert.style.padding = '1rem 2rem';
+            tempAlert.style.backgroundColor = isError ? '#ef4444' : '#22c55e'; // red for error, green for success
+            tempAlert.style.color = 'white';
+            tempAlert.style.borderRadius = '0.5rem';
+            tempAlert.style.zIndex = '200';
+            tempAlert.innerText = message;
+            document.body.appendChild(tempAlert);
+            setTimeout(() => tempAlert.remove(), 5000);
+        }
+
         startBtn.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
-                alert('Silakan masukkan API Key Anda.');
+                showCustomAlert('Silakan masukkan API Key Anda.');
                 return;
             }
             userApiKey = key;
@@ -426,7 +442,7 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                alert('Prompt disalin!');
+                showCustomAlert('Prompt disalin!', false);
             }
         }
 
@@ -601,39 +617,88 @@
         
         async function callTextGenerationAPI(prompt, isJson = false) {
             if (!userApiKey) {
-                alert("API Key belum diatur. Silakan masukkan API Key pada halaman awal.");
+                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
                 return null;
             }
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            if (isJson) payload.generationConfig = { responseMimeType: "application/json" };
+            if (isJson) {
+                 payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                question: { type: "STRING" },
+                                options: { type: "ARRAY", items: { type: "STRING" } },
+                                answer: { type: "STRING" },
+                                explanation: { type: "STRING" }
+                            },
+                            required: ["question", "options", "answer", "explanation"]
+                        }
+                    }
+                };
+            }
             try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("Text API Error Details:", errorBody);
+                    // FIX: Check for specific API_KEY_INVALID reason
+                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
+                    if (isApiKeyInvalid) {
+                        throw new Error('API_KEY_INVALID');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) return result.candidates[0].content.parts[0].text;
                 throw new Error("Invalid text API response structure.");
             } catch (error) {
                 console.error("Error calling Text Generation API:", error);
+                // FIX: Show user-friendly alert for invalid API key
+                if (error.message === 'API_KEY_INVALID') {
+                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
+                }
                 return null;
             }
         }
 
         async function callImageGenerationAPI(prompt) {
             if (!userApiKey) {
-                alert("API Key belum diatur. Silakan masukkan API Key pada halaman awal.");
+                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
                 return null;
             }
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${userApiKey}`;
-            const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${userApiKey}`;
+            const payload = {
+              "contents": [{
+                "parts": [{ "text": prompt }]
+              }],
+              "generationConfig": {
+                "responseModalities": ["TEXT", "IMAGE"]
+              }
+            };
              try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("Image API Error Details:", errorBody);
+                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
+                    if (isApiKeyInvalid) {
+                        throw new Error('API_KEY_INVALID');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
-                if (result.predictions?.[0]?.bytesBase64Encoded) return result.predictions[0].bytesBase64Encoded;
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (base64Data) return base64Data;
                 throw new Error("Invalid image API response structure.");
             } catch (error) {
                 console.error("Error calling Image Generation API:", error);
+                if (error.message === 'API_KEY_INVALID') {
+                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
+                }
                 return null;
             }
         }
@@ -653,22 +718,24 @@
         function copyPlaygroundResult() {
             const resultDiv = document.getElementById('playground-result');
             if (!resultDiv) return;
-            const listener = (e) => {
-                e.clipboardData.setData('text/html', resultDiv.innerHTML);
-                e.clipboardData.setData('text/plain', resultDiv.innerText);
-                e.preventDefault();
-            };
-            document.addEventListener('copy', listener);
+            const textToCopy = resultDiv.innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
             document.execCommand('copy');
-            document.removeEventListener('copy', listener);
-            alert('Teks berhasil disalin ke clipboard!');
+            document.body.removeChild(textarea);
+            showCustomAlert('Teks berhasil disalin!', false);
         }
 
         if (playgroundSubmit) {
             playgroundSubmit.addEventListener('click', async () => {
                 const prompt = playgroundPrompt.value.trim();
                 const mode = outputModeSelector.querySelector('input:checked').value;
-                if (!prompt) return alert("Silakan masukkan prompt.");
+                if (!prompt) {
+                    showCustomAlert('Silakan masukkan prompt.');
+                    return;
+                }
 
                 playgroundLoader.style.display = 'inline-block';
                 playgroundResultContainer.style.display = 'none';
@@ -711,7 +778,10 @@
         if (playgroundAnalyzeBtn) {
             playgroundAnalyzeBtn.addEventListener('click', async () => {
                 const userPrompt = playgroundPrompt.value.trim();
-                if (!userPrompt) return alert("Silakan masukkan prompt untuk dianalisis.");
+                if (!userPrompt) {
+                    showCustomAlert('Silakan masukkan prompt untuk dianalisis.');
+                    return;
+                }
                 
                 playgroundLoader.style.display = 'inline-block';
                 playgroundResultContainer.style.display = 'none';
@@ -779,7 +849,9 @@
             ahliSubmit.disabled = true;
             const expertPrompt = `Anda adalah seorang ahli Prompt Engineering yang ramah dan berpengalaman, khusus membantu para pelaku UMKM di Indonesia. Nama Anda adalah "Ahli AI". Berikan jawaban yang praktis, mudah dipahami, dan relevan dengan konteks bisnis kecil. Jangan menjawab pertanyaan di luar topik prompt engineering dan AI untuk bisnis. Pertanyaan dari user: "${question}"`;
             const response = await callTextGenerationAPI(expertPrompt);
-            addChatMessage(response || "Maaf, terjadi kesalahan. Coba lagi.", 'ai');
+            if(response) {
+                addChatMessage(response, 'ai');
+            }
             ahliLoader.style.display = 'none';
             ahliSubmit.disabled = false;
         }
