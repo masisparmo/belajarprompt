@@ -152,17 +152,14 @@
                 <div>
                     <h3 class="font-semibold text-lg">Langkah 3: Klik "Get API Key"</h3>
                     <p>Setelah masuk ke dashboard, cari dan klik tombol <strong class="text-indigo-600">"Get API key"</strong>. Biasanya tombol ini berada di menu sebelah kiri.</p>
-                    <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_get_api_key.png" alt="Tombol Get API Key di AI Studio" class="mt-2 rounded-md border">
                 </div>
                 <div>
                     <h3 class="font-semibold text-lg">Langkah 4: Buat API Key Baru</h3>
                     <p>Di halaman API keys, klik tombol <strong class="text-indigo-600">"+ Create API key in new project"</strong>. Sebuah API key baru akan langsung dibuatkan untuk Anda.</p>
-                     <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_create_api_key.png" alt="Tombol Create API Key" class="mt-2 rounded-md border">
                 </div>
                  <div>
                     <h3 class="font-semibold text-lg">Langkah 5: Salin API Key Anda</h3>
                     <p>API key Anda akan muncul dalam sebuah pop-up. Klik ikon salin (copy) untuk menyalinnya. Simpan API key ini di tempat yang aman.</p>
-                    <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_copy_key.png" alt="Salin API Key yang baru dibuat" class="mt-2 rounded-md border">
                 </div>
                  <div>
                     <h3 class="font-semibold text-lg">Langkah 6: Tempel di Aplikasi</h3>
@@ -274,6 +271,7 @@
 
                         <div class="flex items-center gap-4">
                             <button id="playground-submit" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold"><i data-lucide="send" class="inline-block w-4 h-4 mr-2"></i>Kirim</button>
+                            <button id="playground-analyze" class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition font-semibold"><i data-lucide="search-check" class="inline-block w-4 h-4 mr-2"></i>Analisis Prompt</button>
                             <div id="playground-loader" class="loader" style="display: none;"></div>
                         </div>
                         
@@ -290,6 +288,11 @@
                                 </div>
                             </div>
                             <div id="playground-result" class="prose max-w-none bg-slate-100 p-4 rounded-lg border border-slate-200"></div>
+                        </div>
+
+                         <div id="playground-analysis-container" class="mt-6" style="display: none;">
+                            <h3 class="text-xl font-bold mb-4 text-slate-800">Analisis Prompt:</h3>
+                            <div id="playground-analysis-result" class="prose max-w-none bg-blue-50 p-4 rounded-lg border border-blue-200"></div>
                         </div>
                     </div>
                 </section>
@@ -636,10 +639,13 @@
         }
         
         const playgroundSubmit = document.getElementById('playground-submit');
+        const playgroundAnalyzeBtn = document.getElementById('playground-analyze');
         const playgroundPrompt = document.getElementById('playground-prompt');
         const playgroundLoader = document.getElementById('playground-loader');
         const playgroundResultContainer = document.getElementById('playground-result-container');
         const playgroundResult = document.getElementById('playground-result');
+        const playgroundAnalysisContainer = document.getElementById('playground-analysis-container');
+        const playgroundAnalysisResult = document.getElementById('playground-analysis-result');
         const copyPlaygroundBtn = document.getElementById('copy-playground-result-btn');
         const downloadImageBtn = document.getElementById('download-playground-image-btn');
         const outputModeSelector = document.getElementById('output-mode-selector');
@@ -666,7 +672,9 @@
 
                 playgroundLoader.style.display = 'inline-block';
                 playgroundResultContainer.style.display = 'none';
+                playgroundAnalysisContainer.style.display = 'none';
                 playgroundSubmit.disabled = true;
+                playgroundAnalyzeBtn.disabled = true;
                 playgroundResult.innerHTML = ''; // Clear previous result
 
                 if (mode === 'text') {
@@ -695,9 +703,57 @@
                 playgroundLoader.style.display = 'none';
                 playgroundResultContainer.style.display = 'block';
                 playgroundSubmit.disabled = false;
+                playgroundAnalyzeBtn.disabled = false;
             });
         }
         if (copyPlaygroundBtn) copyPlaygroundBtn.addEventListener('click', copyPlaygroundResult);
+        
+        if (playgroundAnalyzeBtn) {
+            playgroundAnalyzeBtn.addEventListener('click', async () => {
+                const userPrompt = playgroundPrompt.value.trim();
+                if (!userPrompt) return alert("Silakan masukkan prompt untuk dianalisis.");
+                
+                playgroundLoader.style.display = 'inline-block';
+                playgroundResultContainer.style.display = 'none';
+                playgroundAnalysisContainer.style.display = 'none';
+                playgroundSubmit.disabled = true;
+                playgroundAnalyzeBtn.disabled = true;
+
+                const metaPrompt = `
+                    Anda adalah seorang ahli Prompt Engineering. Tugas Anda adalah menganalisis prompt yang diberikan oleh pengguna dan memberikan masukan yang membangun.
+
+                    **Prompt Pengguna untuk Dianalisis:**
+                    "${userPrompt}"
+
+                    **Analisis Anda harus mencakup:**
+                    1.  **Skor Keseluruhan (0-100):** Berikan skor numerik yang merefleksikan kualitas prompt secara keseluruhan.
+                    2.  **Evaluasi Berdasarkan 5 Prinsip:**
+                        * **Kejelasan & Spesifisitas:** Apakah prompt ini jelas? Apa yang bisa dibuat lebih spesifik?
+                        * **Konteks:** Apakah konteks yang diberikan cukup? Konteks apa yang bisa ditambahkan (misal: target audiens, tujuan)?
+                        * **Peran AI:** Apakah prompt ini memberikan peran pada AI? Jika tidak, sarankan peran yang sesuai.
+                        * **Format Output:** Apakah format output ditentukan? Sarankan format yang jelas jika belum ada.
+                        * **Contoh:** Apakah ada contoh yang diberikan? Jelaskan bagaimana contoh bisa meningkatkan kualitas prompt ini.
+                    3.  **Saran Perbaikan:** Berikan 1-2 saran utama dalam bentuk poin-poin singkat tentang bagaimana pengguna bisa langsung memperbaiki prompt ini.
+                    4.  **Contoh Prompt yang Diperbaiki:** Tulis ulang prompt pengguna menjadi versi yang lebih baik berdasarkan analisis Anda.
+
+                    Berikan output dalam format Markdown yang rapi.
+                `;
+
+                const analysisText = await callTextGenerationAPI(metaPrompt);
+                if (analysisText) {
+                    let htmlResult = analysisText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/(\r\n|\n|\r)/g, '<br>').replace(/###\s(.*?)\n/g, '<h3>$1</h3>').replace(/####\s(.*?)\n/g, '<h4>$1</h4>');
+                    playgroundAnalysisResult.innerHTML = htmlResult;
+                } else {
+                    playgroundAnalysisResult.innerHTML = "Maaf, terjadi kesalahan saat menganalisis prompt. Coba lagi nanti.";
+                }
+
+                playgroundLoader.style.display = 'none';
+                playgroundAnalysisContainer.style.display = 'block';
+                playgroundSubmit.disabled = false;
+                playgroundAnalyzeBtn.disabled = false;
+            });
+        }
+
 
         const ahliChatWindow = document.getElementById('ahli-chat-window');
         const ahliInput = document.getElementById('ahli-input');
