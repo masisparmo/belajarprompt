@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seni Memerintah AI untuk UMKM - Platform Pembelajaran Prompt Engineering by Isparmo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .prose ul { list-style-type: disc; padding-left: 1.5rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prompt-example {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #334155;
+            color: #94a3b8;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .copy-btn:hover { background-color: #475569; }
+        
+        .ebook-iframe-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 141.4%; 
+            margin-top: 1rem;
+        }
+        .ebook-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+        #playground-result img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Startup Modal -->
+    <div id="startup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100]">
+        <div class="bg-white p-8 rounded-lg shadow-2xl max-w-2xl w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">Selamat Datang!</h2>
+            <p class="mb-6 text-slate-600">Untuk menjalankan aplikasi interaktif ini, Anda memerlukan akses ke Google Gemini. Silakan pilih salah satu opsi di bawah ini:</p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Option 1: API Key -->
+                <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200 flex flex-col">
+                    <h3 class="font-bold text-lg mb-2 text-indigo-800">Opsi 1: Gunakan API Key Sendiri</h3>
+                    <p class="text-sm text-slate-600 mb-4 flex-grow">Dapatkan kontrol penuh dan akses tanpa batas dengan API Key gratis Anda untuk menjalankan semua fitur interaktif.</p>
+                    <label for="api-key-input" class="block text-sm font-medium text-slate-700">Masukkan Google AI API Key Anda:</label>
+                    <input type="password" id="api-key-input" class="w-full mt-1 p-2 border border-slate-300 rounded-lg" placeholder="•••••••••••••••••••••••••••••••">
+                    <button id="start-with-api-key" class="w-full mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">Jalankan Aplikasi</button>
+                    <p class="text-xs text-slate-500 mt-3">
+                        Belum punya key? <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 hover:underline">Dapatkan API Key gratis di Google AI Studio</a>.
+                    </p>
+                </div>
+
+                <!-- Option 2: Shared Link -->
+                <div class="bg-green-50 p-6 rounded-lg border border-green-200 flex flex-col">
+                    <h3 class="font-bold text-lg mb-2 text-green-800">Opsi 2: Coba via Web Gemini</h3>
+                    <p class="text-sm text-slate-600 mb-4 flex-grow">Gunakan antarmuka web Gemini untuk mencoba contoh-contoh prompt dari materi pembelajaran.</p>
+                    <a href="https://g.co/gemini/share/63acb58df974" target="_blank" class="w-full mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition text-center">Buka Gemini Web</a>
+                    <p class="text-xs text-slate-500 mt-3">
+                        Anda akan diarahkan ke situs web Gemini. Salin & tempel prompt dari materi untuk melihat hasilnya.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app-container" class="hidden">
+        <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+            <!-- Header -->
+            <header class="text-center mb-8 border-b pb-6">
+                <div class="flex items-center justify-center gap-4">
+                    <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Seni Memerintah AI untuk UMKM</h1>
+                </div>
+                <p class="mt-2 text-lg text-slate-600">Platform Pembelajaran Interaktif Prompt Engineering Untuk Melejitkan Bisnis</p>
+            </header>
+
+            <!-- Navigation -->
+            <nav class="bg-white rounded-lg shadow-md p-4 mb-8 sticky top-4 z-50">
+                <ul class="flex flex-wrap justify-center gap-4 md:gap-8">
+                    <li><a href="#" class="nav-link active" data-target="beranda"><i data-lucide="home" class="inline-block w-4 h-4 mr-1"></i>Beranda</a></li>
+                    <li><a href="#" class="nav-link" data-target="materi"><i data-lucide="book-open" class="inline-block w-4 h-4 mr-1"></i>Materi</a></li>
+                    <li><a href="#" class="nav-link" data-target="flipbook"><i data-lucide="book-image" class="inline-block w-4 h-4 mr-1"></i>Ebook</a></li>
+                    <li><a href="#" class="nav-link" data-target="playground"><i data-lucide="play-circle" class="inline-block w-4 h-4 mr-1"></i>Playground</a></li>
+                    <li><a href="#" class="nav-link" data-target="ahli"><i data-lucide="message-square-heart" class="inline-block w-4 h-4 mr-1"></i>Tanya Ahli</a></li>
+                    <li><a href="#" class="nav-link" data-target="kuis"><i data-lucide="file-question" class="inline-block w-4 h-4 mr-1"></i>Kuis</a></li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main>
+                <!-- Beranda Section -->
+                <section id="beranda" class="content-section active">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Selamat Datang, Pejuang UMKM!</h2>
+                        <p class="mb-4 text-slate-700">Di era digital ini, AI bukan lagi teknologi yang rumit dan mahal. Bayangkan Anda memiliki asisten super cerdas yang siap membantu merancang strategi pemasaran, menulis konten kreatif, hingga menganalisis bisnis—kapan saja, tanpa biaya besar. Itulah kekuatan *Prompt Engineering*.</p>
+                        <p class="mb-6 text-slate-700">Platform ini dirancang berdasarkan ebook "Seni Memerintah AI" untuk memandu Anda secara praktis. Mari kita ubah ide menjadi cuan dengan bantuan teknologi, langkah demi langkah.</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                                <h3 class="font-bold text-lg mb-2 text-indigo-800">Mulai Belajar</h3>
+                                <p class="mb-4 text-slate-600">Pelajari 5 prinsip utama berkomunikasi dengan AI dan lihat contoh-contoh prompt siap pakai.</p>
+                                <button class="nav-button bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition" data-target="materi">Lihat Materi</button>
+                            </div>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <h3 class="font-bold text-lg mb-2 text-green-800">Baca Ebook</h3>
+                                <p class="mb-4 text-slate-600">Jelajahi ebook lengkap dalam format interaktif yang menarik.</p>
+                                <button class="nav-button bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition" data-target="flipbook">Buka Ebook</button>
+                            </div>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h3 class="font-bold text-lg mb-2 text-blue-800">Download Ebook</h3>
+                                <p class="mb-4 text-slate-600">Dapatkan versi lengkap ebook "Seni Memerintah AI" dalam format PDF untuk dibaca kapan saja.</p>
+                                <a href="https://drive.google.com/uc?export=download&id=1A-rXUw9qo9sw63_13142U_20UsOXbkgO" target="_blank" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition inline-block">Download PDF</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Materi Section -->
+                <section id="materi" class="content-section">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Materi Pembelajaran</h2>
+                        <p class="mb-6 text-slate-600">Pelajari inti dari ebook "Seni Memerintah AI" dalam format yang ringkas dan interaktif. Klik setiap bab untuk melihat isinya.</p>
+                        <div id="accordion-container" class="space-y-4"></div>
+                        <div class="mt-8 text-center">
+                             <a href="https://drive.google.com/uc?export=download&id=1A-rXUw9qo9sw63_13142U_20UsOXbkgO" target="_blank" class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2">
+                                <i data-lucide="download-cloud"></i> Download Ebook Lengkap (PDF)
+                            </a>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Ebook Iframe Section -->
+                <section id="flipbook" class="content-section">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Baca Ebook Interaktif</h2>
+                        <p class="mb-6 text-slate-600">Jelajahi ebook "Seni Memerintah AI" langsung di sini. Gunakan scroll untuk membaca halaman.</p>
+                        <div class="ebook-iframe-container">
+                            <iframe class="ebook-iframe" src="https://drive.google.com/file/d/1A-rXUw9qo9sw63_13142U_20UsOXbkgO/preview" allow="autoplay"></iframe>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prompt Playground Section -->
+                <section id="playground" class="content-section">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-2 text-indigo-700">Prompt Playground</h2>
+                        <p class="mb-6 text-slate-600">Saatnya praktik! Tulis perintah Anda di bawah ini, pilih mode output, dan biarkan AI yang bekerja.</p>
+                        
+                        <div class="mb-4">
+                            <label for="playground-prompt" class="block font-medium mb-2 text-slate-700">Masukkan Prompt Anda:</label>
+                            <textarea id="playground-prompt" rows="5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Contoh: seekor rubah lucu memakai kacamata, gaya seni digital"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-medium mb-2 text-slate-700">Mode Output:</label>
+                            <div class="flex gap-4" id="output-mode-selector">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="output-mode" value="text" class="form-radio text-indigo-600">
+                                    <span>Teks</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="output-mode" value="image" checked class="form-radio text-indigo-600">
+                                    <span>Gambar</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <button id="playground-submit" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold"><i data-lucide="send" class="inline-block w-4 h-4 mr-2"></i>Kirim</button>
+                            <div id="playground-loader" class="loader" style="display: none;"></div>
+                        </div>
+                        
+                        <div id="playground-result-container" class="mt-6" style="display: none;">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-slate-800">Hasil dari AI:</h3>
+                                <div>
+                                    <button id="copy-playground-result-btn" class="bg-slate-200 text-slate-700 py-1 px-3 rounded-lg hover:bg-slate-300 transition text-sm flex items-center gap-2">
+                                        <i data-lucide="copy" class="w-4 h-4"></i> Salin Teks
+                                    </button>
+                                    <a id="download-playground-image-btn" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700 transition text-sm flex items-center gap-2" href="#" download="generated-image.png">
+                                        <i data-lucide="download" class="w-4 h-4"></i> Unduh Gambar
+                                    </a>
+                                </div>
+                            </div>
+                            <div id="playground-result" class="prose max-w-none bg-slate-100 p-4 rounded-lg border border-slate-200"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tanya Ahli Section -->
+                <section id="ahli" class="content-section">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-2 text-indigo-700">Tanya Ahli Prompt AI</h2>
+                        <p class="mb-6 text-slate-600">Punya pertanyaan spesifik tentang prompt untuk bisnis Anda? Tanyakan pada asisten ahli kami.</p>
+                        <div id="ahli-chat-window" class="h-96 border border-slate-200 rounded-lg p-4 overflow-y-auto bg-slate-50 mb-4 flex flex-col gap-4">
+                            <div class="p-3 rounded-lg bg-indigo-100 text-indigo-800 self-start max-w-md"><strong>Ahli AI:</strong> Halo! Saya siap membantu. Apa yang ingin Anda tanyakan seputar prompt engineering untuk UMKM?</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <input type="text" id="ahli-input" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Ketik pertanyaan Anda...">
+                            <button id="ahli-submit" class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition"><i data-lucide="send" class="w-6 h-6"></i></button>
+                        </div>
+                        <div id="ahli-loader" class="loader mx-auto" style="display: none;"></div>
+                    </div>
+                </section>
+
+                <!-- Kuis Interaktif Section -->
+                <section id="kuis" class="content-section">
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <div id="kuis-setup">
+                            <h2 class="text-2xl font-bold mb-4 text-indigo-700">Kuis Interaktif Dinamis</h2>
+                            <p class="mb-6 text-slate-600">Uji pemahaman Anda dengan soal-soal yang dibuat langsung oleh AI! Setiap kuis akan berbeda.</p>
+                            <label for="jumlah-soal" class="block font-medium mb-2 text-slate-700">Jumlah Soal:</label>
+                            <div class="flex items-center gap-4">
+                                <select id="jumlah-soal" class="p-2 border border-slate-300 rounded-lg">
+                                    <option value="5">5 Soal</option>
+                                    <option value="10">10 Soal</option>
+                                    <option value="15">15 Soal</option>
+                                </select>
+                                <span class="text-slate-500">atau</span>
+                                <input type="number" id="jumlah-soal-custom" class="p-2 border border-slate-300 rounded-lg w-24" placeholder="Jumlah...">
+                            </div>
+                            <button id="mulai-kuis" class="mt-4 bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold">Mulai Kuis</button>
+                            <div id="kuis-loader" class="loader mx-auto" style="display: none;"></div>
+                            <p id="kuis-error" class="text-red-600 mt-4" style="display: none;"></p>
+                        </div>
+                        <div id="kuis-container" style="display: none;"></div>
+                        <div id="kuis-hasil" class="text-center" style="display: none;">
+                            <h3 class="text-2xl font-bold mb-4">Hasil Kuis</h3>
+                            <p id="hasil-skor" class="font-bold text-indigo-600 mb-4"></p>
+                            <p id="hasil-pesan" class="text-lg text-slate-700 mb-6"></p>
+                            <div class="flex justify-center gap-4">
+                                <button id="lihat-review" class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition font-semibold">Lihat Review</button>
+                                <button id="ulangi-kuis" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold">Ulangi Kuis</button>
+                            </div>
+                        </div>
+                        <div id="kuis-review" style="display: none;">
+                            <h3 class="text-2xl font-bold mb-6 text-center">Review Jawaban</h3>
+                            <div id="review-container" class="space-y-6"></div>
+                            <div class="text-center mt-8">
+                                <button id="kembali-ke-hasil" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold">Kembali ke Hasil</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+
+        let userApiKey = '';
+
+        const startupModal = document.getElementById('startup-modal');
+        const mainAppContainer = document.getElementById('main-app-container');
+        const startBtn = document.getElementById('start-with-api-key');
+        const apiKeyInput = document.getElementById('api-key-input');
+
+        startBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) {
+                alert('Silakan masukkan API Key Anda.');
+                return;
+            }
+            userApiKey = key;
+            startupModal.style.display = 'none';
+            mainAppContainer.classList.remove('hidden');
+        });
+
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentSections = document.querySelectorAll('.content-section');
+        const navButtons = document.querySelectorAll('.nav-button');
+
+        function switchTab(targetId) {
+            contentSections.forEach(section => section && section.classList.remove('active'));
+            navLinks.forEach(link => link && link.classList.remove('active'));
+            
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
+
+            const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+            if(activeLink) activeLink.classList.add('active');
+        }
+
+        navLinks.forEach(link => link.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(e.currentTarget.getAttribute('data-target'));
+        }));
+        navButtons.forEach(button => button.addEventListener('click', (e) => {
+            switchTab(e.currentTarget.getAttribute('data-target'));
+        }));
+        
+        function createPromptExample(text) {
+            const uniqueId = `prompt-${Math.random().toString(36).substr(2, 9)}`;
+            return `<div class="prompt-example"><button class="copy-btn" onclick="copyToClipboard('${uniqueId}')">Copy</button><code id="${uniqueId}">${text}</code></div>`;
+        }
+        window.copyToClipboard = function(elementId) {
+            const textEl = document.getElementById(elementId);
+            if (textEl) {
+                const text = textEl.innerText;
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Prompt disalin!');
+            }
+        }
+
+        const materiData = [
+            {
+                title: "Bab 1: Kenalan dengan Asisten Cerdas Anda",
+                content: `<p>Prompt adalah perintah, pertanyaan, atau instruksi yang Anda berikan kepada AI dalam bahasa sehari-hari. Prompt Engineering adalah seni merancang instruksi terbaik agar AI bisa menghasilkan output yang persis seperti yang Anda bayangkan. Ini penting bagi UMKM untuk menghemat waktu & biaya, mempermudah pemasaran, dan meningkatkan inovasi.</p>`
+            },
+            {
+                title: "Bab 2: Fondasi Prompt Sakti: 5 Prinsip Utama",
+                content: `<p>Inti dari prompt engineering adalah 5 prinsip: <strong>Jelas & Spesifik</strong>, <strong>Beri Konteks</strong>, <strong>Tentukan Peran AI</strong>, <strong>Tentukan Format Output</strong>, dan <strong>Beri Contoh</strong>. Menggabungkan kelimanya akan menghasilkan prompt yang super efektif.</p><h4 class="font-bold mt-4 mb-2">Contoh Prompt:</h4>${createPromptExample(`Tulis 5 ide caption Instagram untuk promosi produk baru saya, 'Kopi Susu Gula Aren Botolan'. Target audiens adalah mahasiswa di sekitar Jakarta Selatan. Tone yang diinginkan adalah ceria dan mengajak mereka untuk mampir ke kedai setelah jam kuliah.`)}`
+            },
+            {
+                title: "Bab 3: Prompt untuk Pemasaran & Penjualan",
+                content: `<p>Gunakan AI untuk membuat berbagai materi pemasaran, mulai dari konten media sosial, iklan digital, email, hingga deskripsi produk di e-commerce.</p><h4 class="font-bold mt-4 mb-2">Contoh Prompt:</h4>${createPromptExample(`Rancang skenario untuk video TikTok berdurasi 30 detik yang mempromosikan layanan 'jasa cuci sepatu premium'. Temanya adalah 'transformasi sepatu kotor jadi baru lagi'. Tuliskan detail adegan per adegan, termasuk teks yang muncul di layar dan deskripsi visualnya.`)}`
+            },
+             {
+                title: "Bab 4: Prompt untuk Pengembangan Bisnis",
+                content: `<p>AI bisa menjadi mitra strategis untuk brainstorming ide, menganalisis feedback pelanggan, membuat rencana bisnis, dan menyusun dokumen operasional.</p><h4 class="font-bold mt-4 mb-2">Contoh Prompt:</h4>${createPromptExample(`Bertindaklah sebagai seorang inovator produk dan analis tren pasar. Saya memiliki bisnis minuman kekinian yang menjual boba dan thai tea. Target pasar saya adalah Gen Z usia 16-24 tahun yang peduli kesehatan. Berikan saya 5 ide produk minuman baru yang inovatif, jelaskan konsep, keunikan, dan potensi pasarnya.`)}`
+            },
+            {
+                title: "Bab 5: Teknik Tingkat Lanjut",
+                content: `<p>Jadilah "pawang" AI dengan teknik canggih seperti <strong>Chain-of-Thought</strong> (minta AI berpikir langkah-demi-langkah), <strong>Iterasi</strong> (melanjutkan percakapan), dan <strong>Decomposition</strong> (memecah tugas besar).</p><h4 class="font-bold mt-4 mb-2">Contoh Prompt:</h4>${createPromptExample(`Saya ingin menentukan harga jual untuk produk 'Bolu Kukus Pandan'. Mari kita pikirkan langkah demi langkah. Rincikan semua biaya bahan baku, biaya operasional, hitung HPP per potong, lalu tentukan harga jual dengan margin keuntungan 70%.`)}`
+            },
+            {
+                title: "Bab 6: Etika & Keamanan",
+                content: `<p>Gunakan AI dengan cerdas dan bertanggung jawab: <strong>Verifikasi Fakta</strong> (AI bisa berhalusinasi), <strong>Jaga Privasi Pelanggan</strong> (jangan masukkan data sensitif), dan ingat AI adalah <strong>Asisten, Bukan Pengganti</strong>.</p><h4 class="font-bold mt-4 mb-2">Contoh Prompt:</h4>${createPromptExample(`Seorang pelanggan mengeluh karena pesanannya terlambat datang. Bertindaklah sebagai manajer layanan pelanggan yang empatik. Buat draf balasan chat yang berisi permohonan maaf tulus, penjelasan singkat (tanpa menyalahkan kurir), dan tawarkan voucher diskon 15% untuk pesanan berikutnya sebagai solusi.`)}`
+            },
+            {
+                title: "BAB 7: Prompt Engineering untuk Gambar & Foto",
+                content: `<p>Membuat gambar dengan AI memerlukan deskripsi visual yang detail. Formula dasarnya adalah: <strong>[Subjek Utama] + [Deskripsi Detail Subjek] + [Gaya Visual] + [Detail Tambahan]</strong>.</p>
+                <h4 class="font-bold mt-4 mb-2">Contoh Prompt Detail (Markdown):</h4>
+                ${createPromptExample(`### **Prompt Flyer Promosi**
+**Subjek Utama:**
+* Flyer promosi untuk UMKM 'Nasi Goreng Maknyus'.
+
+**Detail Visual:**
+* Fokus utama pada foto hidangan nasi goreng yang sangat lezat dan menggugah selera, diletakkan di tengah.
+* Topping: Telur mata sapi setengah matang yang kuningnya sedikit meleleh, ayam suwir melimpah, dan taburan bawang goreng.
+* Latar belakang: Tekstur kayu gelap yang memberikan kesan hangat.
+
+**Teks & Branding:**
+* Teks utama (besar dan tebal): "DISKON 20% HARI INI!"
+* Teks tambahan (lebih kecil): "Pesan Lewat Aplikasi Online"
+* Logo: Logo sederhana 'NM' di pojok kanan atas.
+
+**Gaya & Warna:**
+* Gaya desain: Modern, bersih, dan energik.
+* Skema warna: Dominan merah cabai dan kuning telur untuk menarik perhatian.
+`)}
+                ${createPromptExample(`### **Prompt Foto Produk Sosial Media**
+**Subjek Utama:**
+* Sebuah tas ransel unisex.
+
+**Deskripsi Produk:**
+* Bahan: Kulit asli (genuine leather) berwarna coklat tan.
+* Model: Desain klasik, minimalis, dengan satu kantong di depan.
+
+**Setting & Komposisi:**
+* Penataan: Gaya flat lay fotografi, diambil dari sudut atas (top-down shot).
+* Lokasi: Di atas meja kayu dengan tekstur yang terlihat jelas.
+* Properti pendukung: Sebuah laptop MacBook, secangkir kopi hitam dalam cangkir keramik putih, sebuah kacamata dengan frame hitam, dan buku catatan Moleskine.
+
+**Pencahayaan & Gaya:**
+* Pencahayaan: Cahaya natural dari jendela, menciptakan bayangan lembut, nuansa hangat seperti sore hari.
+* Gaya keseluruhan: Estetik, profesional, cocok untuk Instagram.
+`)}
+                ${createPromptExample(`### **Prompt Desain Packaging**
+**Subjek Utama:**
+* Desain kemasan untuk produk 'Keripik Singkong Pedas'.
+
+**Format Kemasan:**
+* Jenis: Stand-up pouch dengan zipper.
+
+**Desain Visual:**
+* Maskot/Ilustrasi: Karakter cabai kartun yang lucu dan berapi-api, memakai kacamata hitam dan tersenyum menyeringai.
+* Latar belakang: Pola api sederhana dengan warna gradasi.
+* Warna dominan: Merah, oranye, dan hitam untuk memberikan kesan 'pedas' dan 'berani'.
+
+**Teks & Branding:**
+* Nama Merek: "Ngemil Gila" dengan font yang tebal, menyenangkan, dan sedikit miring.
+* Tagline: "Sekali Coba, Susah Berhenti!"
+`)}`
+            },
+            {
+                title: "BAB 8: Prompt Engineering untuk Video (Google Veo)",
+                content: `<p>Membuat video dari teks (Text-to-Video) membutuhkan prompt yang mendeskripsikan adegan secara berurutan, lengkap dengan narasi atau dialog.</p>
+                <p>Formula dasarnya adalah: <strong>[Adegan: Deskripsi visual + Aksi + Gerakan Kamera + Durasi] + [Audio: Musik atau Voice Over]</strong>.</p>
+                <h4 class="font-bold mt-4 mb-2">Contoh Prompt Detail (Markdown):</h4>
+                ${createPromptExample(`### **Prompt Video Produk Madu (8 detik)**
+**Gaya Keseluruhan:**
+* Video cerah, alami, dan menggugah selera. Durasi total **8 detik**.
+
+**Adegan 1 (3 detik):**
+* **Visual:** Close-up ekstrem pada madu emas kental.
+* **Aksi:** Madu diteteskan perlahan dari sendok kayu ke atas sepotong roti panggang gandum.
+* **Kamera:** Statis, fokus tajam pada tetesan madu.
+
+**Adegan 2 (3 detik):**
+* **Visual:** Sebuah meja sarapan yang tertata rapi.
+* **Aksi:** Terlihat roti madu, potongan buah stroberi, dan secangkir teh hangat yang masih berasap.
+* **Kamera:** Shot dari atas (top-down view).
+
+**Adegan 3 (2 detik):**
+* **Visual:** Seorang wanita tersenyum puas menikmati roti madu.
+* **Kamera:** Medium shot.
+
+**Audio:**
+* Musik instrumental akustik yang menenangkan dan ceria.
+`)}
+                ${createPromptExample(`### **Prompt Video Iklan Kopi (8 detik)**
+**Gaya Keseluruhan:**
+* Video sinematik, mood tenang dan hangat. Durasi total **8 detik**.
+
+**Adegan 1 (4 detik):**
+* **Visual:** Close-up biji kopi disangrai dengan gerakan slow motion, asap tipis mengepul.
+* **Kamera:** Close-up pada biji kopi.
+* **Audio (VO):** Suara pria yang dalam dan tenang, "Setiap cangkir berawal dari biji pilihan..."
+
+**Adegan 2 (4 detik):**
+* **Visual:** Seseorang menyesap kopi sambil melihat senja dari jendela kafe yang nyaman.
+* **Kamera:** Shot dari belakang bahu, fokus pada cangkir dan pemandangan di luar.
+* **Audio (VO):** "...untuk momen tenangmu. Kopi Kenangan Senja."
+`)}
+                ${createPromptExample(`### **Prompt Video Iklan Cuci Sepatu (8 detik)**
+**Gaya Keseluruhan:**
+* Video energik dan cepat. Durasi total **8 detik**.
+* **Musik:** Upbeat dan modern.
+
+**Adegan 1 (3 detik):**
+* **Visual:** Sepatu kets putih yang sangat kotor dan berlumpur.
+* **Kamera:** Shot statis.
+
+**Adegan 2 (1 detik):**
+* **Visual:** Transisi cepat 'swipe' atau 'wipe' yang membersihkan layar.
+
+**Adegan 3 (4 detik):**
+* **Visual:** Sepatu yang sama kini menjadi sangat bersih dan putih cemerlang, berputar perlahan.
+* **Teks:** Teks "Bersih Seperti Baru!" muncul di layar.
+`)}`
+            }
+        ];
+        const accordionContainer = document.getElementById('accordion-container');
+        if (accordionContainer) {
+            accordionContainer.innerHTML = ''; // Clear existing content before adding new
+            materiData.forEach((item) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'border border-slate-200 rounded-lg';
+                accordionItem.innerHTML = `<button class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 transition rounded-t-lg"><span>${item.title}</span><i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition-transform"></i></button><div class="accordion-content"><div class="p-4 prose max-w-none">${item.content}</div></div>`;
+                accordionContainer.appendChild(accordionItem);
+            });
+            lucide.createIcons();
+        }
+        
+        document.querySelectorAll('.accordion-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('.accordion-icon');
+                if (!content || !icon) return;
+                
+                const isOpened = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+                document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+                document.querySelectorAll('.accordion-toggle .accordion-icon').forEach(i => i.style.transform = 'rotate(0deg)');
+
+                if (!isOpened) {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+        
+        async function callTextGenerationAPI(prompt, isJson = false) {
+            if (!userApiKey) {
+                alert("API Key belum diatur. Silakan masukkan API Key pada halaman awal.");
+                return null;
+            }
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            if (isJson) payload.generationConfig = { responseMimeType: "application/json" };
+            try {
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) return result.candidates[0].content.parts[0].text;
+                throw new Error("Invalid text API response structure.");
+            } catch (error) {
+                console.error("Error calling Text Generation API:", error);
+                return null;
+            }
+        }
+
+        async function callImageGenerationAPI(prompt) {
+            if (!userApiKey) {
+                alert("API Key belum diatur. Silakan masukkan API Key pada halaman awal.");
+                return null;
+            }
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${userApiKey}`;
+            const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
+             try {
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.predictions?.[0]?.bytesBase64Encoded) return result.predictions[0].bytesBase64Encoded;
+                throw new Error("Invalid image API response structure.");
+            } catch (error) {
+                console.error("Error calling Image Generation API:", error);
+                return null;
+            }
+        }
+        
+        const playgroundSubmit = document.getElementById('playground-submit');
+        const playgroundPrompt = document.getElementById('playground-prompt');
+        const playgroundLoader = document.getElementById('playground-loader');
+        const playgroundResultContainer = document.getElementById('playground-result-container');
+        const playgroundResult = document.getElementById('playground-result');
+        const copyPlaygroundBtn = document.getElementById('copy-playground-result-btn');
+        const downloadImageBtn = document.getElementById('download-playground-image-btn');
+        const outputModeSelector = document.getElementById('output-mode-selector');
+
+        function copyPlaygroundResult() {
+            const resultDiv = document.getElementById('playground-result');
+            if (!resultDiv) return;
+            const listener = (e) => {
+                e.clipboardData.setData('text/html', resultDiv.innerHTML);
+                e.clipboardData.setData('text/plain', resultDiv.innerText);
+                e.preventDefault();
+            };
+            document.addEventListener('copy', listener);
+            document.execCommand('copy');
+            document.removeEventListener('copy', listener);
+            alert('Teks berhasil disalin ke clipboard!');
+        }
+
+        if (playgroundSubmit) {
+            playgroundSubmit.addEventListener('click', async () => {
+                const prompt = playgroundPrompt.value.trim();
+                const mode = outputModeSelector.querySelector('input:checked').value;
+                if (!prompt) return alert("Silakan masukkan prompt.");
+
+                playgroundLoader.style.display = 'inline-block';
+                playgroundResultContainer.style.display = 'none';
+                playgroundSubmit.disabled = true;
+                playgroundResult.innerHTML = ''; // Clear previous result
+
+                if (mode === 'text') {
+                    const resultText = await callTextGenerationAPI(prompt);
+                    if (resultText) {
+                        let htmlResult = resultText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/(\r\n|\n|\r)/g, '<br>');
+                        playgroundResult.innerHTML = htmlResult;
+                    } else {
+                        playgroundResult.innerHTML = "Maaf, terjadi kesalahan saat membuat teks. Coba lagi nanti.";
+                    }
+                    copyPlaygroundBtn.style.display = 'flex';
+                    downloadImageBtn.style.display = 'none';
+                } else { // Image mode
+                    const base64Image = await callImageGenerationAPI(prompt);
+                    if (base64Image) {
+                        const imageUrl = `data:image/png;base64,${base64Image}`;
+                        playgroundResult.innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+                        downloadImageBtn.href = imageUrl;
+                    } else {
+                        playgroundResult.innerHTML = "Maaf, terjadi kesalahan saat membuat gambar. Coba lagi nanti.";
+                    }
+                    copyPlaygroundBtn.style.display = 'none';
+                    downloadImageBtn.style.display = 'flex';
+                }
+
+                playgroundLoader.style.display = 'none';
+                playgroundResultContainer.style.display = 'block';
+                playgroundSubmit.disabled = false;
+            });
+        }
+        if (copyPlaygroundBtn) copyPlaygroundBtn.addEventListener('click', copyPlaygroundResult);
+
+        const ahliChatWindow = document.getElementById('ahli-chat-window');
+        const ahliInput = document.getElementById('ahli-input');
+        const ahliSubmit = document.getElementById('ahli-submit');
+        const ahliLoader = document.getElementById('ahli-loader');
+        function addChatMessage(message, sender) {
+            if (!ahliChatWindow) return;
+            const messageDiv = document.createElement('div');
+            const roleClass = sender === 'user' ? 'bg-green-100 text-green-800 self-end' : 'bg-indigo-100 text-indigo-800 self-start';
+            const roleName = sender === 'user' ? 'Anda' : 'Ahli AI';
+            messageDiv.className = `p-3 rounded-lg max-w-md ${roleClass}`;
+            messageDiv.innerHTML = `<strong>${roleName}:</strong> ${message.replace(/(\r\n|\n|\r)/g, '<br>')}`;
+            ahliChatWindow.appendChild(messageDiv);
+            ahliChatWindow.scrollTop = ahliChatWindow.scrollHeight;
+        }
+        async function handleAhliSubmit() {
+            if (!ahliInput || !ahliLoader || !ahliSubmit) return;
+            const question = ahliInput.value.trim();
+            if (!question) return;
+            addChatMessage(question, 'user');
+            ahliInput.value = '';
+            ahliLoader.style.display = 'block';
+            ahliSubmit.disabled = true;
+            const expertPrompt = `Anda adalah seorang ahli Prompt Engineering yang ramah dan berpengalaman, khusus membantu para pelaku UMKM di Indonesia. Nama Anda adalah "Ahli AI". Berikan jawaban yang praktis, mudah dipahami, dan relevan dengan konteks bisnis kecil. Jangan menjawab pertanyaan di luar topik prompt engineering dan AI untuk bisnis. Pertanyaan dari user: "${question}"`;
+            const response = await callTextGenerationAPI(expertPrompt);
+            addChatMessage(response || "Maaf, terjadi kesalahan. Coba lagi.", 'ai');
+            ahliLoader.style.display = 'none';
+            ahliSubmit.disabled = false;
+        }
+        if (ahliSubmit) ahliSubmit.addEventListener('click', handleAhliSubmit);
+        if (ahliInput) ahliInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAhliSubmit());
+
+        const kuisSetup = document.getElementById('kuis-setup');
+        const kuisContainer = document.getElementById('kuis-container');
+        const kuisHasil = document.getElementById('kuis-hasil');
+        const kuisReview = document.getElementById('kuis-review');
+        const mulaiKuisBtn = document.getElementById('mulai-kuis');
+        const ulangiKuisBtn = document.getElementById('ulangi-kuis');
+        const jumlahSoalSelect = document.getElementById('jumlah-soal');
+        const jumlahSoalCustom = document.getElementById('jumlah-soal-custom');
+        const kuisLoader = document.getElementById('kuis-loader');
+        const kuisError = document.getElementById('kuis-error');
+        const lihatReviewBtn = document.getElementById('lihat-review');
+        const kembaliKeHasilBtn = document.getElementById('kembali-ke-hasil');
+
+        let currentQuestions = [], userAnswers = [], score = 0, currentQuestionIndex = 0;
+        const quizContext = `Konteks: Prompt Engineering untuk UMKM. 1. Prompt adalah perintah ke AI. 2. 5 Prinsip: Jelas & Spesifik, Konteks, Peran AI, Format Output, Beri Contoh. 3. Penggunaan: Pemasaran (teks, gambar, video), Pengembangan Bisnis. 4. Teknik Lanjutan: Chain-of-Thought (CoT). 5. Etika: Verifikasi fakta (AI bisa halusinasi), JANGAN masukkan data sensitif. 6. Prompt Gambar: Subjek + Deskripsi + Gaya + Detail Tambahan. 7. Prompt Video: Adegan + Aksi + Gerakan Kamera + Gaya.`;
+
+        if (mulaiKuisBtn) {
+            mulaiKuisBtn.addEventListener('click', async () => {
+                const customNum = parseInt(jumlahSoalCustom.value);
+                const numQuestions = customNum > 0 ? customNum : parseInt(jumlahSoalSelect.value);
+
+                if (isNaN(numQuestions) || numQuestions <= 0) {
+                    kuisError.innerText = "Jumlah soal tidak valid.";
+                    kuisError.style.display = 'block';
+                    return;
+                }
+
+                kuisLoader.style.display = 'block';
+                kuisError.style.display = 'none';
+                mulaiKuisBtn.disabled = true;
+                const generationPrompt = `${quizContext} Berdasarkan konteks di atas, buatkan ${numQuestions} soal kuis pilihan ganda yang unik. Setiap soal harus memiliki 4 pilihan jawaban. Berikan output dalam format JSON array yang valid. Setiap objek dalam array harus memiliki kunci berikut: "question" (string), "options" (array berisi 4 string), "answer" (string), dan "explanation" (string). PENTING: Nilai untuk kunci "answer" HARUS SAMA PERSIS dengan salah satu dari 4 string di dalam array "options". Penjelasan untuk jawaban yang benar harus ada di kunci "explanation", BUKAN di kunci "answer".`;
+                const resultText = await callTextGenerationAPI(generationPrompt, true);
+                kuisLoader.style.display = 'none';
+                mulaiKuisBtn.disabled = false;
+                if (!resultText) {
+                    kuisError.innerText = "Gagal membuat soal. Silakan coba lagi.";
+                    kuisError.style.display = 'block';
+                    return;
+                }
+                try {
+                    currentQuestions = JSON.parse(resultText);
+                    if (!Array.isArray(currentQuestions) || currentQuestions.length === 0) throw new Error("Format tidak valid");
+                    score = 0;
+                    currentQuestionIndex = 0;
+                    userAnswers = [];
+                    if (kuisSetup) kuisSetup.style.display = 'none';
+                    if (kuisContainer) kuisContainer.style.display = 'block';
+                    if (kuisHasil) kuisHasil.style.display = 'none';
+                    if (kuisReview) kuisReview.style.display = 'none';
+                    displayQuestion();
+                } catch (e) {
+                    console.error("Error parsing quiz JSON:", e, "Received text:", resultText);
+                    if (kuisError) {
+                        kuisError.innerText = "Gagal memproses soal dari AI. Coba lagi.";
+                        kuisError.style.display = 'block';
+                    }
+                }
+            });
+        }
+
+        function displayQuestion() {
+            if (!kuisContainer) return;
+            const q = currentQuestions[currentQuestionIndex];
+            kuisContainer.innerHTML = `<p class="text-sm text-slate-500 mb-2">Pertanyaan ${currentQuestionIndex + 1} dari ${currentQuestions.length}</p><h3 class="text-xl font-semibold mb-6">${q.question}</h3><div class="space-y-3">${q.options.map(option => `<button class="option-btn block w-full text-left p-4 bg-slate-100 hover:bg-indigo-100 border border-slate-200 rounded-lg transition">${option}</button>`).join('')}</div><div id="feedback" class="mt-4 p-4 rounded-lg text-sm" style="display: none;"></div><div class="mt-6 text-right"><button id="next-btn" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold" style="display: none;">Selanjutnya</button></div>`;
+            document.querySelectorAll('.option-btn').forEach(btn => btn.addEventListener('click', handleOptionClick));
+        }
+
+        function handleOptionClick(e) {
+            const selectedOption = e.target.innerText;
+            const q = currentQuestions[currentQuestionIndex];
+            const feedbackEl = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            if (!feedbackEl || !nextBtn) return;
+
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+                if (btn.innerText === q.answer) btn.classList.add('bg-green-200', 'border-green-400');
+            });
+            let isCorrect = selectedOption === q.answer;
+            if (isCorrect) {
+                score++;
+                e.target.classList.add('bg-green-200', 'border-green-400');
+                feedbackEl.className = 'mt-4 p-4 rounded-lg text-sm bg-green-100 text-green-800';
+                feedbackEl.innerHTML = '<strong>Jawaban Anda Benar!</strong>';
+            } else {
+                e.target.classList.add('bg-red-200', 'border-red-400');
+                feedbackEl.className = 'mt-4 p-4 rounded-lg text-sm bg-red-100 text-red-800';
+                feedbackEl.innerHTML = `<p class="font-bold mb-2">Jawaban salah.</p><p>${q.explanation}</p>`;
+            }
+            userAnswers.push({ ...q, selected: selectedOption, isCorrect });
+            feedbackEl.style.display = 'block';
+            nextBtn.style.display = 'inline-block';
+            nextBtn.addEventListener('click', () => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < currentQuestions.length) displayQuestion();
+                else showResults();
+            });
+        }
+
+        function showResults() {
+            if (!kuisContainer || !kuisHasil) return;
+            kuisContainer.style.display = 'none';
+            kuisHasil.style.display = 'block';
+            const finalScore = Math.round((score / currentQuestions.length) * 100);
+            const hasilSkor = document.getElementById('hasil-skor');
+            const hasilPesan = document.getElementById('hasil-pesan');
+            if (!hasilSkor || !hasilPesan) return;
+
+            hasilSkor.innerHTML = `<span class="text-6xl">${finalScore}</span><span class="text-4xl text-slate-500">/100</span>`;
+            
+            let message = '';
+            if (finalScore === 100) message = 'Luar biasa! Anda adalah seorang master prompt!';
+            else if (finalScore >= 80) message = 'Sangat bagus! Pemahaman Anda sudah sangat baik.';
+            else if (finalScore >= 60) message = 'Cukup bagus! Terus berlatih untuk menjadi lebih baik.';
+            else message = 'Jangan menyerah! Coba pelajari lagi materinya dan ulangi kuis.';
+            hasilPesan.textContent = `Anda menjawab ${score} dari ${currentQuestions.length} soal dengan benar. ${message}`;
+        }
+
+        if (lihatReviewBtn) {
+            lihatReviewBtn.addEventListener('click', () => {
+                if (!kuisHasil || !kuisReview) return;
+                kuisHasil.style.display = 'none';
+                kuisReview.style.display = 'block';
+                const reviewContainer = document.getElementById('review-container');
+                if (!reviewContainer) return;
+                reviewContainer.innerHTML = userAnswers.map((ans, index) => `<div class="border border-slate-200 rounded-lg p-4"><p class="text-sm text-slate-500">Pertanyaan ${index + 1}</p><p class="font-semibold mb-3">${ans.question}</p><p class="p-3 rounded-lg ${ans.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">Jawaban Anda: <strong>${ans.selected}</strong> ${ans.isCorrect ? '<i data-lucide="check-circle" class="inline-block w-4 h-4 ml-1"></i>' : '<i data-lucide="x-circle" class="inline-block w-4 h-4 ml-1"></i>'}</p>${!ans.isCorrect ? `<p class="p-3 mt-2 rounded-lg bg-slate-100">Jawaban yang benar: <strong>${ans.answer}</strong>. ${ans.explanation}</p>` : ''}</div>`).join('');
+                lucide.createIcons();
+            });
+        }
+        
+        if (kembaliKeHasilBtn) {
+            kembaliKeHasilBtn.addEventListener('click', () => {
+                if (!kuisReview || !kuisHasil) return;
+                kuisReview.style.display = 'none';
+                kuisHasil.style.display = 'block';
+            });
+        }
+
+        if (ulangiKuisBtn) {
+            ulangiKuisBtn.addEventListener('click', () => {
+                if (!kuisHasil || !kuisReview || !kuisSetup) return;
+                kuisHasil.style.display = 'none';
+                kuisReview.style.display = 'none';
+                kuisSetup.style.display = 'block';
+            });
+        }
+        
+        lucide.createIcons();
+    });
+    </script>
+</body>
+</html>
