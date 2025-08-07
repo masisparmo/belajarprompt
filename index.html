@@ -91,12 +91,18 @@
             border-radius: 0.5rem;
             border: 1px solid #e5e7eb;
         }
+        .modal {
+            display: flex;
+        }
+        .modal.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
     <!-- Startup Modal -->
-    <div id="startup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100]">
+    <div id="startup-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-[100]">
         <div class="bg-white p-8 rounded-lg shadow-2xl max-w-2xl w-full mx-4">
             <h2 class="text-2xl font-bold mb-4 text-slate-900">Selamat Datang!</h2>
             <p class="mb-6 text-slate-600">Untuk menjalankan aplikasi interaktif ini, Anda memerlukan akses ke Google Gemini. Silakan pilih salah satu opsi di bawah ini:</p>
@@ -110,18 +116,57 @@
                     <input type="password" id="api-key-input" class="w-full mt-1 p-2 border border-slate-300 rounded-lg" placeholder="•••••••••••••••••••••••••••••••">
                     <button id="start-with-api-key" class="w-full mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">Jalankan Aplikasi</button>
                     <p class="text-xs text-slate-500 mt-3">
-                        Belum punya key? <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 hover:underline">Dapatkan API Key gratis di Google AI Studio</a>.
+                        Belum punya API key Gemini? <button id="how-to-api-key-btn" class="text-indigo-600 hover:underline">Dapatkan API Key gratis di Google AI Studio</button>.
                     </p>
                 </div>
 
                 <!-- Option 2: Shared Link -->
                 <div class="bg-green-50 p-6 rounded-lg border border-green-200 flex flex-col">
                     <h3 class="font-bold text-lg mb-2 text-green-800">Opsi 2: Coba via Web Gemini</h3>
-                    <p class="text-sm text-slate-600 mb-4 flex-grow">Gunakan antarmuka web Gemini untuk mencoba contoh-contoh prompt dari materi pembelajaran.</p>
+                    <p class="text-sm text-slate-600 mb-4 flex-grow">Akses aplikasi tanpa menggunakan kode API menggunakan akun Gemini (Google). Anda akan diminta login menggunakan akun Gmail.</p>
                     <a href="https://g.co/gemini/share/63acb58df974" target="_blank" class="w-full mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition text-center">Buka Gemini Web</a>
                     <p class="text-xs text-slate-500 mt-3">
-                        Anda akan diarahkan ke situs web Gemini. Salin & tempel prompt dari materi untuk melihat hasilnya.
+                        Anda akan diarahkan ke web gemini menggunakan akun Gemini (Google) Anda sendiri.
                     </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How-to API Key Modal -->
+    <div id="how-to-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-[101]">
+        <div class="bg-white p-8 rounded-lg shadow-2xl max-w-3xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+            <button id="close-how-to-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-slate-900">Cara Mendapatkan API Key Gratis dari Google AI Studio</h2>
+            <div class="space-y-6 text-slate-700">
+                <div>
+                    <h3 class="font-semibold text-lg">Langkah 1: Kunjungi Google AI Studio</h3>
+                    <p>Buka browser Anda dan pergi ke <a href="https://aistudio.google.com" target="_blank" class="text-indigo-600 hover:underline">aistudio.google.com</a>. Anda akan diminta untuk login menggunakan akun Google (Gmail) Anda.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Langkah 2: Setujui Syarat & Ketentuan</h3>
+                    <p>Jika ini pertama kalinya Anda berkunjung, Anda mungkin perlu menyetujui syarat dan ketentuan layanan dari Google.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Langkah 3: Klik "Get API Key"</h3>
+                    <p>Setelah masuk ke dashboard, cari dan klik tombol <strong class="text-indigo-600">"Get API key"</strong>. Biasanya tombol ini berada di menu sebelah kiri.</p>
+                    <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_get_api_key.png" alt="Tombol Get API Key di AI Studio" class="mt-2 rounded-md border">
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Langkah 4: Buat API Key Baru</h3>
+                    <p>Di halaman API keys, klik tombol <strong class="text-indigo-600">"+ Create API key in new project"</strong>. Sebuah API key baru akan langsung dibuatkan untuk Anda.</p>
+                     <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_create_api_key.png" alt="Tombol Create API Key" class="mt-2 rounded-md border">
+                </div>
+                 <div>
+                    <h3 class="font-semibold text-lg">Langkah 5: Salin API Key Anda</h3>
+                    <p>API key Anda akan muncul dalam sebuah pop-up. Klik ikon salin (copy) untuk menyalinnya. Simpan API key ini di tempat yang aman.</p>
+                    <img src="https://storage.googleapis.com/gemini-prod/images/aistudio_copy_key.png" alt="Salin API Key yang baru dibuat" class="mt-2 rounded-md border">
+                </div>
+                 <div>
+                    <h3 class="font-semibold text-lg">Langkah 6: Tempel di Aplikasi</h3>
+                    <p>Kembali ke aplikasi ini, dan tempel (paste) API key yang sudah Anda salin ke dalam kolom yang tersedia pada "Opsi 1", lalu klik "Jalankan Aplikasi".</p>
                 </div>
             </div>
         </div>
@@ -318,6 +363,9 @@
         const mainAppContainer = document.getElementById('main-app-container');
         const startBtn = document.getElementById('start-with-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
+        const howToModal = document.getElementById('how-to-modal');
+        const showHowToBtn = document.getElementById('how-to-api-key-btn');
+        const closeHowToBtn = document.getElementById('close-how-to-modal');
 
         startBtn.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
@@ -326,8 +374,16 @@
                 return;
             }
             userApiKey = key;
-            startupModal.style.display = 'none';
+            startupModal.classList.add('hidden');
             mainAppContainer.classList.remove('hidden');
+        });
+
+        showHowToBtn.addEventListener('click', () => {
+            howToModal.classList.remove('hidden');
+        });
+
+        closeHowToBtn.addEventListener('click', () => {
+            howToModal.classList.add('hidden');
         });
 
         const navLinks = document.querySelectorAll('.nav-link');
