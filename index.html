@@ -97,6 +97,9 @@
         .modal.hidden {
             display: none;
         }
+        .builder-field {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -248,33 +251,161 @@
                 <section id="playground" class="content-section">
                     <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
                         <h2 class="text-2xl font-bold mb-2 text-indigo-700">Prompt Playground</h2>
-                        <p class="mb-6 text-slate-600">Saatnya praktik! Tulis perintah Anda di bawah ini, pilih mode output, dan biarkan AI yang bekerja.</p>
+                        <p class="mb-6 text-slate-600">Saatnya praktik! Tulis perintah Anda di bawah ini, atau gunakan Asisten Prompt untuk memandu Anda.</p>
                         
                         <div class="mb-4">
                             <label for="playground-prompt" class="block font-medium mb-2 text-slate-700">Masukkan Prompt Anda:</label>
-                            <textarea id="playground-prompt" rows="5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Contoh: seekor rubah lucu memakai kacamata, gaya seni digital"></textarea>
+                            <textarea id="playground-prompt" rows="8" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Contoh: Bertindaklah sebagai Ahli Pemasaran Digital..."></textarea>
                         </div>
 
                         <div class="mb-4">
                             <label class="block font-medium mb-2 text-slate-700">Mode Output:</label>
                             <div class="flex gap-4" id="output-mode-selector">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="output-mode" value="text" class="form-radio text-indigo-600">
+                                    <input type="radio" name="output-mode" value="text" class="form-radio text-indigo-600" checked>
                                     <span>Teks</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="output-mode" value="image" checked class="form-radio text-indigo-600">
+                                    <input type="radio" name="output-mode" value="image" class="form-radio text-indigo-600">
                                     <span>Gambar</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4 flex-wrap">
                             <button id="playground-submit" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold"><i data-lucide="send" class="inline-block w-4 h-4 mr-2"></i>Kirim</button>
                             <button id="playground-analyze" class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition font-semibold"><i data-lucide="search-check" class="inline-block w-4 h-4 mr-2"></i>Analisis Prompt</button>
+                            <button id="open-prompt-builder" class="bg-gray-600 text-white py-2 px-6 rounded-lg hover:bg-gray-700 transition font-semibold"><i data-lucide="bot" class="inline-block w-4 h-4 mr-2"></i>Asisten Prompt</button>
                             <div id="playground-loader" class="loader" style="display: none;"></div>
                         </div>
                         
+                        <!-- REVISED FEATURE: PROMPT BUILDER UI -->
+                        <div id="prompt-builder-container" class="hidden mt-6 p-6 bg-indigo-50 border border-indigo-200 rounded-lg transition-all duration-500">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-indigo-800">Asisten Pembuat Prompt</h3>
+                                <button id="close-prompt-builder" class="text-gray-500 hover:text-gray-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <!-- Step 1: Konteks Bisnis -->
+                                <fieldset class="border border-slate-300 p-4 rounded-lg">
+                                    <legend class="text-lg font-semibold px-2 text-slate-700">Konteks Bisnis / Identitas Brand</legend>
+                                    <div class="grid md:grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <label for="builder-brand-name" class="block text-sm font-medium text-slate-700">Nama Brand/UKM</label>
+                                            <input type="text" id="builder-brand-name" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Kopi Kenangan Manis">
+                                        </div>
+                                        <div>
+                                            <label for="builder-brand-product" class="block text-sm font-medium text-slate-700">Produk/Layanan Utama</label>
+                                            <input type="text" id="builder-brand-product" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Kopi susu gula aren, donat kampung">
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label for="builder-brand-usp" class="block text-sm font-medium text-slate-700">Keunggulan (USP)</label>
+                                            <input type="text" id="builder-brand-usp" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Pilihan 3 tingkat kemanisan">
+                                        </div>
+                                         <div class="md:col-span-2">
+                                            <label for="builder-brand-values" class="block text-sm font-medium text-slate-700">Nilai-nilai Brand</label>
+                                            <input type="text" id="builder-brand-values" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Cepat, Ramah, Terjangkau, Bahan lokal">
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <!-- Step 2: Tujuan & Detail Tugas -->
+                                <fieldset class="border border-slate-300 p-4 rounded-lg">
+                                    <legend class="text-lg font-semibold px-2 text-slate-700">Detail Tugas</legend>
+                                    <div class="grid md:grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <label for="builder-goal" class="block text-sm font-medium text-slate-700">1. Tujuan Anda</label>
+                                            <select id="builder-goal" class="mt-1 w-full p-2 border border-slate-300 rounded-lg">
+                                                <option value="">-- Pilih Tujuan --</option>
+                                                <optgroup label="Pemasaran Media Sosial">
+                                                    <option value="caption">Caption Postingan Media Sosial</option>
+                                                    <option value="ide_konten">Ide Konten Instagram/TikTok/Facebook</option>
+                                                    <option value="balas_komen">Balasan Komentar & DM</option>
+                                                    <option value="script_video">Script Video Pendek (Reels/TikTok)</option>
+                                                </optgroup>
+                                                <optgroup label="Penjualan & E-commerce">
+                                                    <option value="deskripsi_produk">Deskripsi Produk Marketplace</option>
+                                                    <option value="judul_produk">Judul Produk SEO-Friendly</option>
+                                                    <option value="wa_broadcast">Teks Promosi / Broadcast WhatsApp</option>
+                                                </optgroup>
+                                                 <optgroup label="Layanan Pelanggan">
+                                                    <option value="balas_review">Template Balasan Review</option>
+                                                    <option value="faq">Template Jawaban Pertanyaan Umum (FAQ)</option>
+                                                </optgroup>
+                                                 <optgroup label="Operasional Bisnis">
+                                                    <option value="email_pro">Email Profesional ke Supplier/Partner</option>
+                                                    <option value="ide_brand">Ide Nama Brand / Produk / Tagline</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="builder-ai-role" class="block text-sm font-medium text-slate-700">2. Peran AI</label>
+                                            <input type="text" id="builder-ai-role" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Ahli Pemasaran Digital">
+                                        </div>
+                                        <div>
+                                            <label for="builder-tone" class="block text-sm font-medium text-slate-700">3. Gaya Bahasa / Tone of Voice</label>
+                                            <select id="builder-tone" class="mt-1 w-full p-2 border border-slate-300 rounded-lg">
+                                                <option value="Ramah & Santai">Ramah & Santai</option>
+                                                <option value="Profesional">Profesional</option>
+                                                <option value="Jenaka/Humoris">Jenaka/Humoris</option>
+                                                <option value="Inspiratif">Inspiratif</option>
+                                                <option value="Elegan & Mewah">Elegan & Mewah</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="builder-audience" class="block text-sm font-medium text-slate-700">4. Target Audiens</label>
+                                            <input type="text" id="builder-audience" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Sebutkan demografi dan minat mereka...">
+                                        </div>
+
+                                        <!-- Conditional Fields for "Caption Postingan" -->
+                                        <div id="caption-fields" class="md:col-span-2 grid md:grid-cols-2 gap-4 builder-field">
+                                            <h4 class="md:col-span-2 text-md font-semibold mt-4 border-t pt-4 text-slate-600">Detail Spesifik untuk Caption</h4>
+                                            <div>
+                                                <label for="builder-platform" class="block text-sm font-medium text-slate-700">Platform</label>
+                                                <select id="builder-platform" class="mt-1 w-full p-2 border border-slate-300 rounded-lg">
+                                                    <option>Instagram</option>
+                                                    <option>TikTok</option>
+                                                    <option>Facebook</option>
+                                                    <option>X/Twitter</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label for="builder-cta" class="block text-sm font-medium text-slate-700">Tujuan Postingan (CTA)</label>
+                                                <select id="builder-cta" class="mt-1 w-full p-2 border border-slate-300 rounded-lg">
+                                                    <option>Mengumumkan promo</option>
+                                                    <option>Meningkatkan engagement (like/komen)</option>
+                                                    <option>Mengajak ke toko</option>
+                                                    <option>Mengedukasi</option>
+                                                </select>
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label for="builder-visual" class="block text-sm font-medium text-slate-700">Jelaskan Isi Visual (Gambar/Video)</label>
+                                                <textarea id="builder-visual" rows="2" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Foto secangkir es kopi susu di atas meja kayu..."></textarea>
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label for="builder-must-include" class="block text-sm font-medium text-slate-700">Informasi WAJIB Dicantumkan</label>
+                                                <input type="text" id="builder-must-include" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Promo Beli 1 Gratis 1, hashtag #KopiEnak">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label for="builder-avoid" class="block text-sm font-medium text-slate-700">Hal yang HARUS Dihindari</label>
+                                                <input type="text" id="builder-avoid" class="mt-1 w-full p-2 border border-slate-300 rounded-lg" placeholder="Contoh: Jangan gunakan bahasa formal">
+                                            </div>
+                                            <div>
+                                                <label for="builder-alternatives" class="block text-sm font-medium text-slate-700">Jumlah Alternatif</label>
+                                                <input type="number" id="builder-alternatives" value="3" class="mt-1 w-full p-2 border border-slate-300 rounded-lg">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <div class="mt-6 text-right">
+                                <button id="generate-prompt-from-builder" class="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition font-semibold">Buat & Salin Prompt</button>
+                            </div>
+                        </div>
+
+
                         <div id="playground-result-container" class="mt-6" style="display: none;">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-xl font-bold text-slate-800">Hasil dari AI:</h3>
@@ -370,23 +501,26 @@
         const showHowToBtn = document.getElementById('how-to-api-key-btn');
         const closeHowToBtn = document.getElementById('close-how-to-modal');
 
+        function showCustomAlert(message, isError = true) {
+            const tempAlert = document.createElement('div');
+            tempAlert.style.position = 'fixed';
+            tempAlert.style.top = '20px';
+            tempAlert.style.left = '50%';
+            tempAlert.style.transform = 'translateX(-50%)';
+            tempAlert.style.padding = '1rem 2rem';
+            tempAlert.style.backgroundColor = isError ? '#ef4444' : '#22c55e'; // red for error, green for success
+            tempAlert.style.color = 'white';
+            tempAlert.style.borderRadius = '0.5rem';
+            tempAlert.style.zIndex = '200';
+            tempAlert.innerText = message;
+            document.body.appendChild(tempAlert);
+            setTimeout(() => tempAlert.remove(), 5000);
+        }
+
         startBtn.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
-                // Using a custom modal for alerts
-                const tempAlert = document.createElement('div');
-                tempAlert.style.position = 'fixed';
-                tempAlert.style.top = '20px';
-                tempAlert.style.left = '50%';
-                tempAlert.style.transform = 'translateX(-50%)';
-                tempAlert.style.padding = '1rem 2rem';
-                tempAlert.style.backgroundColor = '#ef4444';
-                tempAlert.style.color = 'white';
-                tempAlert.style.borderRadius = '0.5rem';
-                tempAlert.style.zIndex = '200';
-                tempAlert.innerText = 'Silakan masukkan API Key Anda.';
-                document.body.appendChild(tempAlert);
-                setTimeout(() => tempAlert.remove(), 3000);
+                showCustomAlert('Silakan masukkan API Key Anda.');
                 return;
             }
             userApiKey = key;
@@ -439,20 +573,7 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-
-                const tempAlert = document.createElement('div');
-                tempAlert.style.position = 'fixed';
-                tempAlert.style.top = '20px';
-                tempAlert.style.left = '50%';
-                tempAlert.style.transform = 'translateX(-50%)';
-                tempAlert.style.padding = '1rem 2rem';
-                tempAlert.style.backgroundColor = '#22c55e';
-                tempAlert.style.color = 'white';
-                tempAlert.style.borderRadius = '0.5rem';
-                tempAlert.style.zIndex = '200';
-                tempAlert.innerText = 'Prompt disalin!';
-                document.body.appendChild(tempAlert);
-                setTimeout(() => tempAlert.remove(), 2000);
+                showCustomAlert('Prompt disalin!', false);
             }
         }
 
@@ -627,19 +748,7 @@
         
         async function callTextGenerationAPI(prompt, isJson = false) {
             if (!userApiKey) {
-                const tempAlert = document.createElement('div');
-                tempAlert.style.position = 'fixed';
-                tempAlert.style.top = '20px';
-                tempAlert.style.left = '50%';
-                tempAlert.style.transform = 'translateX(-50%)';
-                tempAlert.style.padding = '1rem 2rem';
-                tempAlert.style.backgroundColor = '#f97316';
-                tempAlert.style.color = 'white';
-                tempAlert.style.borderRadius = '0.5rem';
-                tempAlert.style.zIndex = '200';
-                tempAlert.innerText = 'API Key belum diatur. Silakan masukkan API Key pada halaman awal.';
-                document.body.appendChild(tempAlert);
-                setTimeout(() => tempAlert.remove(), 3000);
+                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
                 return null;
             }
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
@@ -664,43 +773,61 @@
             }
             try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("Text API Error Details:", errorBody);
+                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
+                    if (isApiKeyInvalid) {
+                        throw new Error('API_KEY_INVALID');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) return result.candidates[0].content.parts[0].text;
                 throw new Error("Invalid text API response structure.");
             } catch (error) {
                 console.error("Error calling Text Generation API:", error);
+                if (error.message === 'API_KEY_INVALID') {
+                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
+                }
                 return null;
             }
         }
 
         async function callImageGenerationAPI(prompt) {
             if (!userApiKey) {
-                const tempAlert = document.createElement('div');
-                tempAlert.style.position = 'fixed';
-                tempAlert.style.top = '20px';
-                tempAlert.style.left = '50%';
-                tempAlert.style.transform = 'translateX(-50%)';
-                tempAlert.style.padding = '1rem 2rem';
-                tempAlert.style.backgroundColor = '#f97316';
-                tempAlert.style.color = 'white';
-                tempAlert.style.borderRadius = '0.5rem';
-                tempAlert.style.zIndex = '200';
-                tempAlert.innerText = 'API Key belum diatur. Silakan masukkan API Key pada halaman awal.';
-                document.body.appendChild(tempAlert);
-                setTimeout(() => tempAlert.remove(), 3000);
+                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
                 return null;
             }
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${userApiKey}`;
-            const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${userApiKey}`;
+            const payload = {
+              "contents": [{
+                "parts": [{ "text": prompt }]
+              }],
+              "generationConfig": {
+                "responseModalities": ["TEXT", "IMAGE"]
+              }
+            };
              try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("Image API Error Details:", errorBody);
+                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
+                    if (isApiKeyInvalid) {
+                        throw new Error('API_KEY_INVALID');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
-                if (result.predictions?.[0]?.bytesBase64Encoded) return result.predictions[0].bytesBase64Encoded;
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (base64Data) return base64Data;
                 throw new Error("Invalid image API response structure.");
             } catch (error) {
                 console.error("Error calling Image Generation API:", error);
+                if (error.message === 'API_KEY_INVALID') {
+                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
+                }
                 return null;
             }
         }
@@ -717,6 +844,119 @@
         const downloadImageBtn = document.getElementById('download-playground-image-btn');
         const outputModeSelector = document.getElementById('output-mode-selector');
 
+        // REVISED FEATURE: Prompt Builder Elements
+        const openBuilderBtn = document.getElementById('open-prompt-builder');
+        const closeBuilderBtn = document.getElementById('close-prompt-builder');
+        const builderContainer = document.getElementById('prompt-builder-container');
+        const generateFromBuilderBtn = document.getElementById('generate-prompt-from-builder');
+        const builderGoal = document.getElementById('builder-goal');
+        const captionFields = document.getElementById('caption-fields');
+
+        if (openBuilderBtn) {
+            openBuilderBtn.addEventListener('click', () => {
+                builderContainer.classList.toggle('hidden');
+                lucide.createIcons();
+            });
+        }
+
+        if (closeBuilderBtn) {
+            closeBuilderBtn.addEventListener('click', () => {
+                builderContainer.classList.add('hidden');
+            });
+        }
+        
+        if(builderGoal) {
+            builderGoal.addEventListener('change', () => {
+                if (builderGoal.value === 'caption') {
+                    captionFields.style.display = 'grid';
+                } else {
+                    captionFields.style.display = 'none';
+                }
+            });
+        }
+
+        if (generateFromBuilderBtn) {
+            generateFromBuilderBtn.addEventListener('click', () => {
+                const brandName = document.getElementById('builder-brand-name').value.trim();
+                const brandProduct = document.getElementById('builder-brand-product').value.trim();
+                const brandUsp = document.getElementById('builder-brand-usp').value.trim();
+                const brandValues = document.getElementById('builder-brand-values').value.trim();
+                
+                const goalSelect = document.getElementById('builder-goal');
+                const goal = goalSelect.value;
+                const aiRole = document.getElementById('builder-ai-role').value.trim();
+                const tone = document.getElementById('builder-tone').value.trim();
+                const audience = document.getElementById('builder-audience').value.trim();
+
+                if (!goal) {
+                    showCustomAlert("Mohon pilih 'Tujuan Anda' terlebih dahulu.");
+                    return;
+                }
+
+                let finalPrompt = "";
+
+                if (aiRole && tone) {
+                    finalPrompt += `Bertindaklah sebagai ${aiRole} dengan gaya bahasa yang ${tone}.\n\n`;
+                } else if (aiRole) {
+                    finalPrompt += `Bertindaklah sebagai ${aiRole}.\n\n`;
+                }
+
+                let brandContext = "";
+                if (brandName) brandContext += `Nama brand adalah ${brandName}. `;
+                if (brandProduct) brandContext += `Produk kami adalah ${brandProduct}. `;
+                if (brandUsp) brandContext += `Kami memiliki keunggulan unik yaitu ${brandUsp}. `;
+                if (brandValues) brandContext += `Nilai brand kami adalah ${brandValues}.`;
+                
+                if (brandContext) {
+                    finalPrompt += `Konteks Brand: ${brandContext.trim()}\n\n`;
+                }
+
+                let taskDescription = "";
+                const goalText = goalSelect.options[goalSelect.selectedIndex].text;
+                const alternatives = document.getElementById('builder-alternatives').value || 1;
+                
+                if (goal === 'caption') {
+                    taskDescription = `Buat ${alternatives} alternatif ${goalText}`;
+                } else {
+                    taskDescription = `Buat ${goalText}`;
+                }
+
+                finalPrompt += `Tugas: ${taskDescription}`;
+                if (audience) {
+                    finalPrompt += ` untuk target audiens ${audience}.\n\n`;
+                } else {
+                    finalPrompt += `.\n\n`;
+                }
+                
+                if (goal === 'caption') {
+                    const platform = document.getElementById('builder-platform').value;
+                    const visual = document.getElementById('builder-visual').value.trim();
+                    const cta = document.getElementById('builder-cta').value;
+                    const mustInclude = document.getElementById('builder-must-include').value.trim();
+                    const avoid = document.getElementById('builder-avoid').value.trim();
+
+                    finalPrompt += `Detail Postingan:\n`;
+                    if (platform) finalPrompt += `- Platform: ${platform}\n`;
+                    if (visual) finalPrompt += `- Visual: ${visual}\n`;
+                    if (cta) finalPrompt += `- Tujuan & CTA: ${cta}\n`;
+                    if (mustInclude) finalPrompt += `- Informasi Wajib: ${mustInclude}\n`;
+                    if (avoid) finalPrompt += `- Batasan: ${avoid}\n`;
+                }
+                
+                finalPrompt += `\nBuatlah hasil yang menarik dan persuasif sesuai dengan detail yang diberikan.`;
+                
+                playgroundPrompt.value = finalPrompt.trim().replace(/(\n\n\n)/g, '\n\n');
+                builderContainer.classList.add('hidden');
+                showCustomAlert("Prompt berhasil dibuat & disalin ke Playground!", false);
+
+                const textRadio = document.querySelector('input[name="output-mode"][value="text"]');
+                if (textRadio) {
+                    textRadio.checked = true;
+                }
+            });
+        }
+
+
         function copyPlaygroundResult() {
             const resultDiv = document.getElementById('playground-result');
             if (!resultDiv) return;
@@ -727,20 +967,7 @@
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-
-            const tempAlert = document.createElement('div');
-            tempAlert.style.position = 'fixed';
-            tempAlert.style.top = '20px';
-            tempAlert.style.left = '50%';
-            tempAlert.style.transform = 'translateX(-50%)';
-            tempAlert.style.padding = '1rem 2rem';
-            tempAlert.style.backgroundColor = '#22c55e';
-            tempAlert.style.color = 'white';
-            tempAlert.style.borderRadius = '0.5rem';
-            tempAlert.style.zIndex = '200';
-            tempAlert.innerText = 'Teks berhasil disalin!';
-            document.body.appendChild(tempAlert);
-            setTimeout(() => tempAlert.remove(), 2000);
+            showCustomAlert('Teks berhasil disalin!', false);
         }
 
         if (playgroundSubmit) {
@@ -748,19 +975,7 @@
                 const prompt = playgroundPrompt.value.trim();
                 const mode = outputModeSelector.querySelector('input:checked').value;
                 if (!prompt) {
-                     const tempAlert = document.createElement('div');
-                    tempAlert.style.position = 'fixed';
-                    tempAlert.style.top = '20px';
-                    tempAlert.style.left = '50%';
-                    tempAlert.style.transform = 'translateX(-50%)';
-                    tempAlert.style.padding = '1rem 2rem';
-                    tempAlert.style.backgroundColor = '#ef4444';
-                    tempAlert.style.color = 'white';
-                    tempAlert.style.borderRadius = '0.5rem';
-                    tempAlert.style.zIndex = '200';
-                    tempAlert.innerText = 'Silakan masukkan prompt.';
-                    document.body.appendChild(tempAlert);
-                    setTimeout(() => tempAlert.remove(), 3000);
+                    showCustomAlert('Silakan masukkan prompt.');
                     return;
                 }
 
@@ -806,19 +1021,7 @@
             playgroundAnalyzeBtn.addEventListener('click', async () => {
                 const userPrompt = playgroundPrompt.value.trim();
                 if (!userPrompt) {
-                    const tempAlert = document.createElement('div');
-                    tempAlert.style.position = 'fixed';
-                    tempAlert.style.top = '20px';
-                    tempAlert.style.left = '50%';
-                    tempAlert.style.transform = 'translateX(-50%)';
-                    tempAlert.style.padding = '1rem 2rem';
-                    tempAlert.style.backgroundColor = '#ef4444';
-                    tempAlert.style.color = 'white';
-                    tempAlert.style.borderRadius = '0.5rem';
-                    tempAlert.style.zIndex = '200';
-                    tempAlert.innerText = 'Silakan masukkan prompt untuk dianalisis.';
-                    document.body.appendChild(tempAlert);
-                    setTimeout(() => tempAlert.remove(), 3000);
+                    showCustomAlert('Silakan masukkan prompt untuk dianalisis.');
                     return;
                 }
                 
@@ -868,16 +1071,27 @@
         const ahliInput = document.getElementById('ahli-input');
         const ahliSubmit = document.getElementById('ahli-submit');
         const ahliLoader = document.getElementById('ahli-loader');
+
+        // FIX: Updated function to handle Rich Text
         function addChatMessage(message, sender) {
             if (!ahliChatWindow) return;
             const messageDiv = document.createElement('div');
             const roleClass = sender === 'user' ? 'bg-green-100 text-green-800 self-end' : 'bg-indigo-100 text-indigo-800 self-start';
             const roleName = sender === 'user' ? 'Anda' : 'Ahli AI';
             messageDiv.className = `p-3 rounded-lg max-w-md ${roleClass}`;
-            messageDiv.innerHTML = `<strong>${roleName}:</strong> ${message.replace(/(\r\n|\n|\r)/g, '<br>')}`;
+            
+            // Convert Markdown to HTML
+            let formattedMessage = message
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')       // Italics
+                .replace(/(\r\n|\n|\r)/g, '<br>');      // Line breaks
+
+            messageDiv.innerHTML = `<strong>${roleName}:</strong> ${formattedMessage}`;
+            
             ahliChatWindow.appendChild(messageDiv);
             ahliChatWindow.scrollTop = ahliChatWindow.scrollHeight;
         }
+
         async function handleAhliSubmit() {
             if (!ahliInput || !ahliLoader || !ahliSubmit) return;
             const question = ahliInput.value.trim();
@@ -888,7 +1102,9 @@
             ahliSubmit.disabled = true;
             const expertPrompt = `Anda adalah seorang ahli Prompt Engineering yang ramah dan berpengalaman, khusus membantu para pelaku UMKM di Indonesia. Nama Anda adalah "Ahli AI". Berikan jawaban yang praktis, mudah dipahami, dan relevan dengan konteks bisnis kecil. Jangan menjawab pertanyaan di luar topik prompt engineering dan AI untuk bisnis. Pertanyaan dari user: "${question}"`;
             const response = await callTextGenerationAPI(expertPrompt);
-            addChatMessage(response || "Maaf, terjadi kesalahan. Coba lagi.", 'ai');
+            if(response) {
+                addChatMessage(response, 'ai');
+            }
             ahliLoader.style.display = 'none';
             ahliSubmit.disabled = false;
         }
@@ -1047,4 +1263,3 @@
     </script>
 </body>
 </html>
-
