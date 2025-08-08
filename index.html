@@ -370,26 +370,23 @@
         const showHowToBtn = document.getElementById('how-to-api-key-btn');
         const closeHowToBtn = document.getElementById('close-how-to-modal');
 
-        function showCustomAlert(message, isError = true) {
-            const tempAlert = document.createElement('div');
-            tempAlert.style.position = 'fixed';
-            tempAlert.style.top = '20px';
-            tempAlert.style.left = '50%';
-            tempAlert.style.transform = 'translateX(-50%)';
-            tempAlert.style.padding = '1rem 2rem';
-            tempAlert.style.backgroundColor = isError ? '#ef4444' : '#22c55e'; // red for error, green for success
-            tempAlert.style.color = 'white';
-            tempAlert.style.borderRadius = '0.5rem';
-            tempAlert.style.zIndex = '200';
-            tempAlert.innerText = message;
-            document.body.appendChild(tempAlert);
-            setTimeout(() => tempAlert.remove(), 5000);
-        }
-
         startBtn.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
-                showCustomAlert('Silakan masukkan API Key Anda.');
+                // Using a custom modal for alerts
+                const tempAlert = document.createElement('div');
+                tempAlert.style.position = 'fixed';
+                tempAlert.style.top = '20px';
+                tempAlert.style.left = '50%';
+                tempAlert.style.transform = 'translateX(-50%)';
+                tempAlert.style.padding = '1rem 2rem';
+                tempAlert.style.backgroundColor = '#ef4444';
+                tempAlert.style.color = 'white';
+                tempAlert.style.borderRadius = '0.5rem';
+                tempAlert.style.zIndex = '200';
+                tempAlert.innerText = 'Silakan masukkan API Key Anda.';
+                document.body.appendChild(tempAlert);
+                setTimeout(() => tempAlert.remove(), 3000);
                 return;
             }
             userApiKey = key;
@@ -442,7 +439,20 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showCustomAlert('Prompt disalin!', false);
+
+                const tempAlert = document.createElement('div');
+                tempAlert.style.position = 'fixed';
+                tempAlert.style.top = '20px';
+                tempAlert.style.left = '50%';
+                tempAlert.style.transform = 'translateX(-50%)';
+                tempAlert.style.padding = '1rem 2rem';
+                tempAlert.style.backgroundColor = '#22c55e';
+                tempAlert.style.color = 'white';
+                tempAlert.style.borderRadius = '0.5rem';
+                tempAlert.style.zIndex = '200';
+                tempAlert.innerText = 'Prompt disalin!';
+                document.body.appendChild(tempAlert);
+                setTimeout(() => tempAlert.remove(), 2000);
             }
         }
 
@@ -617,7 +627,19 @@
         
         async function callTextGenerationAPI(prompt, isJson = false) {
             if (!userApiKey) {
-                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
+                const tempAlert = document.createElement('div');
+                tempAlert.style.position = 'fixed';
+                tempAlert.style.top = '20px';
+                tempAlert.style.left = '50%';
+                tempAlert.style.transform = 'translateX(-50%)';
+                tempAlert.style.padding = '1rem 2rem';
+                tempAlert.style.backgroundColor = '#f97316';
+                tempAlert.style.color = 'white';
+                tempAlert.style.borderRadius = '0.5rem';
+                tempAlert.style.zIndex = '200';
+                tempAlert.innerText = 'API Key belum diatur. Silakan masukkan API Key pada halaman awal.';
+                document.body.appendChild(tempAlert);
+                setTimeout(() => tempAlert.remove(), 3000);
                 return null;
             }
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
@@ -642,63 +664,43 @@
             }
             try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) {
-                    const errorBody = await response.json();
-                    console.error("Text API Error Details:", errorBody);
-                    // FIX: Check for specific API_KEY_INVALID reason
-                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
-                    if (isApiKeyInvalid) {
-                        throw new Error('API_KEY_INVALID');
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) return result.candidates[0].content.parts[0].text;
                 throw new Error("Invalid text API response structure.");
             } catch (error) {
                 console.error("Error calling Text Generation API:", error);
-                // FIX: Show user-friendly alert for invalid API key
-                if (error.message === 'API_KEY_INVALID') {
-                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
-                }
                 return null;
             }
         }
 
         async function callImageGenerationAPI(prompt) {
             if (!userApiKey) {
-                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
+                const tempAlert = document.createElement('div');
+                tempAlert.style.position = 'fixed';
+                tempAlert.style.top = '20px';
+                tempAlert.style.left = '50%';
+                tempAlert.style.transform = 'translateX(-50%)';
+                tempAlert.style.padding = '1rem 2rem';
+                tempAlert.style.backgroundColor = '#f97316';
+                tempAlert.style.color = 'white';
+                tempAlert.style.borderRadius = '0.5rem';
+                tempAlert.style.zIndex = '200';
+                tempAlert.innerText = 'API Key belum diatur. Silakan masukkan API Key pada halaman awal.';
+                document.body.appendChild(tempAlert);
+                setTimeout(() => tempAlert.remove(), 3000);
                 return null;
             }
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${userApiKey}`;
-            const payload = {
-              "contents": [{
-                "parts": [{ "text": prompt }]
-              }],
-              "generationConfig": {
-                "responseModalities": ["TEXT", "IMAGE"]
-              }
-            };
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${userApiKey}`;
+            const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
              try {
                 const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) {
-                    const errorBody = await response.json();
-                    console.error("Image API Error Details:", errorBody);
-                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
-                    if (isApiKeyInvalid) {
-                        throw new Error('API_KEY_INVALID');
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result = await response.json();
-                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                if (base64Data) return base64Data;
+                if (result.predictions?.[0]?.bytesBase64Encoded) return result.predictions[0].bytesBase64Encoded;
                 throw new Error("Invalid image API response structure.");
             } catch (error) {
                 console.error("Error calling Image Generation API:", error);
-                if (error.message === 'API_KEY_INVALID') {
-                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
-                }
                 return null;
             }
         }
@@ -725,7 +727,20 @@
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            showCustomAlert('Teks berhasil disalin!', false);
+
+            const tempAlert = document.createElement('div');
+            tempAlert.style.position = 'fixed';
+            tempAlert.style.top = '20px';
+            tempAlert.style.left = '50%';
+            tempAlert.style.transform = 'translateX(-50%)';
+            tempAlert.style.padding = '1rem 2rem';
+            tempAlert.style.backgroundColor = '#22c55e';
+            tempAlert.style.color = 'white';
+            tempAlert.style.borderRadius = '0.5rem';
+            tempAlert.style.zIndex = '200';
+            tempAlert.innerText = 'Teks berhasil disalin!';
+            document.body.appendChild(tempAlert);
+            setTimeout(() => tempAlert.remove(), 2000);
         }
 
         if (playgroundSubmit) {
@@ -733,7 +748,19 @@
                 const prompt = playgroundPrompt.value.trim();
                 const mode = outputModeSelector.querySelector('input:checked').value;
                 if (!prompt) {
-                    showCustomAlert('Silakan masukkan prompt.');
+                     const tempAlert = document.createElement('div');
+                    tempAlert.style.position = 'fixed';
+                    tempAlert.style.top = '20px';
+                    tempAlert.style.left = '50%';
+                    tempAlert.style.transform = 'translateX(-50%)';
+                    tempAlert.style.padding = '1rem 2rem';
+                    tempAlert.style.backgroundColor = '#ef4444';
+                    tempAlert.style.color = 'white';
+                    tempAlert.style.borderRadius = '0.5rem';
+                    tempAlert.style.zIndex = '200';
+                    tempAlert.innerText = 'Silakan masukkan prompt.';
+                    document.body.appendChild(tempAlert);
+                    setTimeout(() => tempAlert.remove(), 3000);
                     return;
                 }
 
@@ -779,7 +806,19 @@
             playgroundAnalyzeBtn.addEventListener('click', async () => {
                 const userPrompt = playgroundPrompt.value.trim();
                 if (!userPrompt) {
-                    showCustomAlert('Silakan masukkan prompt untuk dianalisis.');
+                    const tempAlert = document.createElement('div');
+                    tempAlert.style.position = 'fixed';
+                    tempAlert.style.top = '20px';
+                    tempAlert.style.left = '50%';
+                    tempAlert.style.transform = 'translateX(-50%)';
+                    tempAlert.style.padding = '1rem 2rem';
+                    tempAlert.style.backgroundColor = '#ef4444';
+                    tempAlert.style.color = 'white';
+                    tempAlert.style.borderRadius = '0.5rem';
+                    tempAlert.style.zIndex = '200';
+                    tempAlert.innerText = 'Silakan masukkan prompt untuk dianalisis.';
+                    document.body.appendChild(tempAlert);
+                    setTimeout(() => tempAlert.remove(), 3000);
                     return;
                 }
                 
@@ -849,9 +888,7 @@
             ahliSubmit.disabled = true;
             const expertPrompt = `Anda adalah seorang ahli Prompt Engineering yang ramah dan berpengalaman, khusus membantu para pelaku UMKM di Indonesia. Nama Anda adalah "Ahli AI". Berikan jawaban yang praktis, mudah dipahami, dan relevan dengan konteks bisnis kecil. Jangan menjawab pertanyaan di luar topik prompt engineering dan AI untuk bisnis. Pertanyaan dari user: "${question}"`;
             const response = await callTextGenerationAPI(expertPrompt);
-            if(response) {
-                addChatMessage(response, 'ai');
-            }
+            addChatMessage(response || "Maaf, terjadi kesalahan. Coba lagi.", 'ai');
             ahliLoader.style.display = 'none';
             ahliSubmit.disabled = false;
         }
@@ -1010,3 +1047,4 @@
     </script>
 </body>
 </html>
+
