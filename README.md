@@ -46,9 +46,9 @@ Aplikasi ini sepenuhnya berjalan di sisi pengguna (_client-side_), yang berarti 
     
     *   **Google Gemini API:** Jantung dari semua fitur cerdas di aplikasi ini.
         
-        *   **gemini-2.5-flash-preview-05-20:** Digunakan untuk semua tugas yang berhubungan dengan generasi teks, seperti pada fitur Tanya Ahli, Analisis Prompt, dan pembuatan soal Kuis.
+        *   **gemini-2.5-flash:** Digunakan untuk semua tugas yang berhubungan dengan generasi teks, seperti pada fitur Tanya Ahli, Analisis Prompt, dan pembuatan soal Kuis.
             
-        *   **gemini-2.0-flash-preview-image-generation:** Digunakan khusus pada fitur Playground untuk mengubah prompt teks menjadi gambar. Model ini dipilih karena dapat diakses menggunakan API key standar tanpa memerlukan akun berbayar.
+    *   **Pollinations AI (FLUX):** Digunakan khusus pada fitur Playground untuk mengubah prompt teks menjadi gambar. Layanan ini dipilih karena memberikan akses gratis (free tier) yang stabil tanpa masalah kuota, menggantikan model Gemini image generation.
             
 
 3\. Target Pengguna
