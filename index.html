@@ -751,7 +751,7 @@
                 showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
                 return null;
             }
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userApiKey}`;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             if (isJson) {
                  payload.generationConfig = {
@@ -795,39 +795,31 @@
         }
 
         async function callImageGenerationAPI(prompt) {
-            if (!userApiKey) {
-                showCustomAlert('API Key belum diatur. Silakan masukkan API Key pada halaman awal.');
-                return null;
-            }
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${userApiKey}`;
-            const payload = {
-              "contents": [{
-                "parts": [{ "text": prompt }]
-              }],
-              "generationConfig": {
-                "responseModalities": ["TEXT", "IMAGE"]
-              }
-            };
-             try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            // Using Pollinations AI for image generation (free, no API key required)
+            const encodedPrompt = encodeURIComponent(prompt);
+            const seed = Math.floor(Math.random() * 1000000); // Add random seed to avoid caching
+            const API_URL = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&nologo=true`;
+
+            try {
+                const response = await fetch(API_URL);
                 if (!response.ok) {
-                    const errorBody = await response.json();
-                    console.error("Image API Error Details:", errorBody);
-                    const isApiKeyInvalid = errorBody?.error?.details?.some(d => d.reason === 'API_KEY_INVALID');
-                    if (isApiKeyInvalid) {
-                        throw new Error('API_KEY_INVALID');
-                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const result = await response.json();
-                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                if (base64Data) return base64Data;
-                throw new Error("Invalid image API response structure.");
+                const blob = await response.blob();
+
+                // Convert blob to base64
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        // Return only the base64 string without the data URL prefix
+                        const base64String = reader.result.replace(/^data:image\/(png|jpeg|webp);base64,/, "");
+                        resolve(base64String);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
             } catch (error) {
                 console.error("Error calling Image Generation API:", error);
-                if (error.message === 'API_KEY_INVALID') {
-                    showCustomAlert('Terjadi galat: API Key tidak valid. Silakan periksa kembali key Anda.');
-                }
                 return null;
             }
         }
