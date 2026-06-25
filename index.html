@@ -37,6 +37,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for sanitizing marked output -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     
     <style>
         ::-webkit-scrollbar {
@@ -107,22 +111,79 @@
         }
 
         /* Custom rich text rendering styles within chat bubbles */
-        .chat-rich-text h4 {
-            font-size: 0.875rem;
+        .chat-rich-text h1, .chat-rich-text h2, .chat-rich-text h3, .chat-rich-text h4, .chat-rich-text h5, .chat-rich-text h6 {
             font-weight: 700;
-            margin-top: 0.75rem;
-            margin-bottom: 0.25rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: inherit;
         }
+        .chat-rich-text h1 { font-size: 1.25rem; }
+        .chat-rich-text h2 { font-size: 1.125rem; }
+        .chat-rich-text h3 { font-size: 1rem; }
+        .chat-rich-text h4 { font-size: 0.875rem; }
         .chat-rich-text p {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
         }
-        .chat-rich-text ul, .chat-rich-text ol {
-            margin-bottom: 0.5rem;
-            padding-left: 1.25rem;
+        .chat-rich-text ul {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            list-style-type: disc;
+        }
+        .chat-rich-text ol {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            list-style-type: decimal;
         }
         .chat-rich-text li {
             margin-bottom: 0.25rem;
+        }
+        .chat-rich-text strong {
+            font-weight: 700;
+        }
+        .chat-rich-text em {
+            font-style: italic;
+        }
+        .chat-rich-text code {
+            background-color: rgba(100, 116, 139, 0.2);
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.8em;
+        }
+        .chat-rich-text pre {
+            background-color: rgba(15, 23, 42, 0.9);
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+        .chat-rich-text pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .chat-rich-text blockquote {
+            border-left: 4px solid rgba(100, 116, 139, 0.5);
+            padding-left: 1rem;
+            margin-left: 0;
+            margin-bottom: 0.75rem;
+            color: inherit;
+            opacity: 0.8;
+            font-style: italic;
+        }
+        .chat-rich-text a {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+        .dark .chat-rich-text a {
+            color: #818cf8;
+        }
+        .chat-rich-text *:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -563,62 +624,6 @@
     </footer>
 
     <script>
-    function parseMarkdownToHtml(markdown) {
-        if (!markdown) return '';
-        
-        // Simpan blok kode aslinya untuk mencegah double-parsing
-        const codeBlocks = [];
-        let processed = markdown.replace(/```([\s\S]*?)```/g, (match, code) => {
-            codeBlocks.push(code);
-            return `__CODE_BLOCK_PLACEHOLDER_${codeBlocks.length - 1}__`;
-        });
-
-        const inlineCodes = [];
-        processed = processed.replace(/`(.*?)`/g, (match, code) => {
-            inlineCodes.push(code);
-            return `__INLINE_CODE_PLACEHOLDER_${inlineCodes.length - 1}__`;
-        });
-
-        // Pengamanan Karakter HTML Dasar
-        processed = processed
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        // Heading 3, 2, 1
-        processed = processed.replace(/^### (.*$)/gim, '<h4 class="text-sm font-bold text-slate-950 dark:text-white mt-3 mb-1.5">$1</h4>');
-        processed = processed.replace(/^## (.*$)/gim, '<h3 class="text-base font-bold text-slate-950 dark:text-white mt-4 mb-2">$1</h3>');
-        processed = processed.replace(/^# (.*$)/gim, '<h2 class="text-lg font-bold text-slate-950 dark:text-white mt-5 mb-2.5">$1</h2>');
-
-        // Bold (**teks**)
-        processed = processed.replace(/\*\*(.*?)\*\"/g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
-        processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
-
-        // Italic (*teks* atau _teks_)
-        processed = processed.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-        processed = processed.replace(/_(.*?)_/g, '<em class="italic">$1</em>');
-
-        // Bullet Lists (- item atau * item)
-        processed = processed.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li class="ml-4 list-disc text-xs text-slate-700 dark:text-slate-300 my-1">$1</li>');
-
-        // Pindah baris (\n ke <br>)
-        processed = processed.replace(/\n/g, '<br>');
-
-        // Kembalikan inline code
-        processed = processed.replace(/__INLINE_CODE_PLACEHOLDER_(\d+)__/g, (match, index) => {
-            const code = inlineCodes[parseInt(index)];
-            return `<code class="bg-slate-200 dark:bg-slate-955 px-1.5 py-0.5 rounded font-mono text-xs text-brand-600 dark:text-brand-400 border border-slate-300 dark:border-slate-800">${code}</code>`;
-        });
-
-        // Kembalikan blok kode
-        processed = processed.replace(/__CODE_BLOCK_PLACEHOLDER_(\d+)__/g, (match, index) => {
-            const code = codeBlocks[parseInt(index)];
-            return `<pre class="bg-slate-200 dark:bg-slate-955 p-4 rounded-xl font-mono text-xs my-3 overflow-x-auto text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-800">${code}</pre>`;
-        });
-
-        return processed;
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
 
@@ -1313,10 +1318,15 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
 
             msgDiv.className = `p-4 rounded-2xl max-w-xl text-sm border leading-relaxed ${roleClass}`;
             
-            // Mengubah format Markdown menjadi Rich Text yang rapi
-            const contentHtml = isUser 
-                ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>')
-                : parseMarkdownToHtml(text);
+            // Mengubah format Markdown menjadi Rich Text yang rapi menggunakan marked.js
+            let contentHtml;
+            if (isUser) {
+                contentHtml = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            } else {
+                // Gunakan DOMPurify untuk mencegah XSS dari marked.js
+                const rawHtml = marked.parse(text);
+                contentHtml = DOMPurify.sanitize(rawHtml);
+            }
 
             msgDiv.innerHTML = `
                 <div class="font-bold border-b border-slate-100 dark:border-slate-800/80 pb-1.5 mb-2 flex items-center gap-1.5 text-xs tracking-wider uppercase text-slate-400 dark:text-slate-500">
@@ -1347,7 +1357,17 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
                 { text: "Menyinkronkan respons solusi praktis...", target: 90, duration: 1000 }
             ]);
 
-            const consultPrompt = `Anda adalah "Ahli AI" - konsultan ahli Prompt Engineering ramah yang membimbing pengguna sesuai kurikulum "PANDUAN LENGKAP CARA MEMERINTAH AI". Berikan jawaban yang taktis, praktis, menginspirasi, dan fokus penuh pada peningkatan produktivitas serta pemecahan masalah secara efisien. Pertanyaan user: "${query}"`;
+            const consultPrompt = `Anda adalah "Ahli AI" - konsultan ahli Prompt Engineering ramah yang membimbing pengguna.
+
+Peran Anda: Berikan jawaban yang taktis, praktis, menginspirasi, dan fokus penuh pada peningkatan produktivitas serta pemecahan masalah secara efisien. Anda dapat menjawab pertanyaan umum apa pun terkait AI.
+
+ATURAN PENTING:
+Jika pengguna bertanya spesifik mengenai panduan, materi, kurikulum, atau bab dalam e-book "PANDUAN LENGKAP CARA MEMERINTAH AI" (misalnya "Jelaskan bab 15", "Apa itu CRAFT", dll), Anda WAJIB merujuk dan menggunakan referensi materi berikut ini sebagai satu-satunya sumber jawaban Anda untuk pertanyaan tersebut, agar tidak ada informasi yang salah atau di luar konteks buku.
+
+${quizSyllabusContext}
+${detailedChapterContext}
+
+Pertanyaan user: "${query}"`;
             
             const aiResponse = await callTextGenerationAPI(consultPrompt);
             ahliLoader.style.display = 'none';
@@ -1370,17 +1390,6 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
         const kuisSetup = document.getElementById('kuis-setup');
         const kuisContainer = document.getElementById('kuis-container');
         const kuisHasil = document.getElementById('kuis-hasil');
-        const kuisReview = document.getElementById('kuis-review');
-        const mulaiKuisBtn = document.getElementById('mulai-kuis');
-        const ulangiKuisBtn = document.getElementById('ulangi-kuis');
-        const jumlahSoalSelect = document.getElementById('jumlah-soal');
-        const kuisLoader = document.getElementById('kuis-loader');
-        const kuisError = document.getElementById('kuis-error');
-        const lihatReviewBtn = document.getElementById('lihat-review');
-        const kembaliKeHasilBtn = document.getElementById('kembali-ke-hasil');
-
-        let currentQuestions = [], userAnswers = [], quizScore = 0, currentQIndex = 0;
-
         const quizSyllabusContext = `Konsep Utama Pembelajaran: 
         Bab 1: Evolusi Prompting (Generasi 1-4). Internal reasoning model 2026.
         Bab 2: CRAFT Framework (Context, Role, Action, Format, Test Criteria).
@@ -1398,6 +1407,26 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
         Bab 14: Dynamic Context vs Static Context.
         Bab 15: Memory Architecture (Working, Episodic, Semantic memory, Memory Compression).
         Bab 16: Context Retrieval (RAG, Retrieve-Filter-Rank-Use-Verify).`;
+
+        // Menyusun konten detail dari chapterData sebagai referensi tambahan
+        let detailedChapterContext = "";
+        if (typeof chapterData !== 'undefined' && chapterData.length > 0) {
+            detailedChapterContext = "\\n\\nRingkasan Detail Materi Buku PANDUAN LENGKAP CARA MEMERINTAH AI:\\n";
+            chapterData.forEach(ch => {
+                detailedChapterContext += `${ch.title}: ${ch.content.replace(/<[^>]*>?/gm, '')}\n`;
+            });
+        }
+
+        const kuisReview = document.getElementById('kuis-review');
+        const mulaiKuisBtn = document.getElementById('mulai-kuis');
+        const ulangiKuisBtn = document.getElementById('ulangi-kuis');
+        const jumlahSoalSelect = document.getElementById('jumlah-soal');
+        const kuisLoader = document.getElementById('kuis-loader');
+        const kuisError = document.getElementById('kuis-error');
+        const lihatReviewBtn = document.getElementById('lihat-review');
+        const kembaliKeHasilBtn = document.getElementById('kembali-ke-hasil');
+
+        let currentQuestions = [], userAnswers = [], quizScore = 0, currentQIndex = 0;
 
         if (mulaiKuisBtn) {
             mulaiKuisBtn.addEventListener('click', async () => {
