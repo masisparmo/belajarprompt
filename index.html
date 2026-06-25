@@ -142,8 +142,11 @@
                 </div>
             </div>
 
-            <!-- Panel Tombol Header (Hanya Tema Gelap/Terang) -->
+            <!-- Panel Tombol Header -->
             <div class="flex items-center gap-2">
+                <button id="settings-btn" class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200 flex items-center justify-center shadow-sm" aria-label="Pengaturan">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
                 <button id="theme-toggle-btn" class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl border border-slate-200 dark:border-slate-700 transition duration-200 flex items-center justify-center shadow-sm" aria-label="Toggle Theme">
                     <i id="theme-toggle-icon" data-lucide="moon" class="w-5 h-5"></i>
                 </button>
@@ -472,6 +475,69 @@
         </section>
     </main>
 
+    <!-- Modal Settings API Key -->
+    <div id="settings-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 p-6 flex justify-between items-center z-10">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i> Pengaturan API Key
+                </h3>
+                <button id="close-settings-btn" class="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- Gemini Keys -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Google Gemini API Keys (gemini-2.5-flash) <span class="text-red-500">*</span>
+                    </label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Masukkan satu atau lebih API key, pisahkan dengan koma jika lebih dari satu. Key akan digunakan secara berurutan.</p>
+                    <textarea id="gemini-keys-input" rows="2" class="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition text-sm font-mono" placeholder="AIzaSy... , AIzaSy..."></textarea>
+
+                    <div class="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-xl border border-brand-200 dark:border-brand-800/50">
+                        <h4 class="text-xs font-bold text-brand-700 dark:text-brand-400 mb-2 flex items-center gap-1.5"><i data-lucide="help-circle" class="w-4 h-4"></i> Cara Mendapatkan API Key Gemini (Gratis)</h4>
+                        <ol class="list-decimal pl-4 text-xs text-brand-600 dark:text-brand-300 space-y-1">
+                            <li>Buka <a href="https://aistudio.google.com/" target="_blank" class="font-bold underline hover:text-brand-800 dark:hover:text-brand-200">Google AI Studio</a> dan login dengan akun Google.</li>
+                            <li>Pilih menu <strong>"Get API key"</strong> di panel sebelah kiri.</li>
+                            <li>Klik tombol <strong>"Create API key"</strong>.</li>
+                            <li>Pilih project yang ada atau buat baru, lalu klik <strong>"Create API key in new project"</strong>.</li>
+                            <li>Salin (Copy) kode unik yang muncul dan tempel (Paste) di atas.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Groq Keys -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Groq API Keys (llama-3.1-8b-instant) <span class="text-xs text-slate-500 font-normal italic">- Fallback Model</span>
+                    </label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Masukkan satu atau lebih API key, pisahkan dengan koma. Ini akan digunakan jika permintaan ke Gemini gagal.</p>
+                    <textarea id="groq-keys-input" rows="2" class="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition text-sm font-mono" placeholder="gsk_... , gsk_..."></textarea>
+
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/50">
+                        <h4 class="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-1.5"><i data-lucide="help-circle" class="w-4 h-4"></i> Cara Mendapatkan API Key Groq (Gratis)</h4>
+                        <ol class="list-decimal pl-4 text-xs text-emerald-600 dark:text-emerald-300 space-y-1">
+                            <li>Buka <a href="https://console.groq.com/" target="_blank" class="font-bold underline hover:text-emerald-800 dark:hover:text-emerald-200">Groq Console</a> dan login.</li>
+                            <li>Di panel menu sebelah kiri, klik opsi <strong>"API Keys"</strong>.</li>
+                            <li>Klik tombol <strong>"Create API Key"</strong>.</li>
+                            <li>Beri nama (misal: "PanduanAI"), lalu klik Submit/Create.</li>
+                            <li>Salin (Copy) kode yang berawalan <code>gsk_</code> dan tempel (Paste) di atas.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3 rounded-b-3xl">
+                <button id="cancel-settings-btn" class="px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">Batal</button>
+                <button id="save-settings-btn" class="px-5 py-2.5 rounded-xl font-semibold text-sm bg-brand-600 hover:bg-brand-700 text-white shadow-md transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Pengaturan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="global-progress-toast" class="fixed bottom-6 right-6 z-50 bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl max-w-sm w-[90%] sm:w-80 md:w-96 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none backdrop-blur-md">
         <div class="flex items-center gap-3">
             <div class="relative flex items-center justify-center flex-shrink-0">
@@ -593,6 +659,93 @@
             themeToggleBtn.innerHTML = `<i id="theme-toggle-icon" data-lucide="${isDark ? 'sun' : 'moon'}" class="w-5 h-5"></i>`;
             lucide.createIcons();
         }
+
+        // --- API Keys Management ---
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const geminiKeysInput = document.getElementById('gemini-keys-input');
+        const groqKeysInput = document.getElementById('groq-keys-input');
+
+        let geminiKeys = [];
+        let groqKeys = [];
+        let geminiKeyIndex = 0;
+        let groqKeyIndex = 0;
+
+        function loadApiKeys() {
+            const storedGemini = localStorage.getItem('geminiKeys');
+            const storedGroq = localStorage.getItem('groqKeys');
+            if (storedGemini) {
+                geminiKeys = storedGemini.split(',').map(k => k.trim()).filter(k => k);
+                geminiKeysInput.value = geminiKeys.join(', ');
+            }
+            if (storedGroq) {
+                groqKeys = storedGroq.split(',').map(k => k.trim()).filter(k => k);
+                groqKeysInput.value = groqKeys.join(', ');
+            }
+        }
+
+        function saveApiKeys() {
+            const newGeminiKeys = geminiKeysInput.value.split(',').map(k => k.trim()).filter(k => k);
+            const newGroqKeys = groqKeysInput.value.split(',').map(k => k.trim()).filter(k => k);
+
+            localStorage.setItem('geminiKeys', newGeminiKeys.join(','));
+            localStorage.setItem('groqKeys', newGroqKeys.join(','));
+
+            geminiKeys = newGeminiKeys;
+            groqKeys = newGroqKeys;
+            geminiKeyIndex = 0; // Reset index on save
+            groqKeyIndex = 0;
+
+            closeSettingsModal();
+            startProgressTracking("Pengaturan Tersimpan", [
+                { text: "Berhasil menyimpan API Key.", target: 100, duration: 1000 }
+            ]);
+            setTimeout(() => finishProgressTracking("Siap digunakan!"), 1000);
+        }
+
+        function openSettingsModal() {
+            loadApiKeys(); // Load latest when opening
+            settingsModal.classList.remove('hidden');
+            settingsModal.classList.add('flex');
+            // Give slight delay for transition
+            setTimeout(() => settingsModal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeSettingsModal() {
+            settingsModal.classList.add('opacity-0');
+            setTimeout(() => {
+                settingsModal.classList.add('hidden');
+                settingsModal.classList.remove('flex');
+            }, 300); // match duration-300
+        }
+
+        function checkApiKeyRequired(callback) {
+            loadApiKeys();
+            if (geminiKeys.length === 0 && groqKeys.length === 0) {
+                startProgressTracking("API Key Diperlukan", [
+                    { text: "Anda perlu mengatur API Key untuk menggunakan fitur ini.", target: 100, duration: 1500 }
+                ]);
+                setTimeout(() => {
+                    failProgressTracking("Buka pengaturan.");
+                    openSettingsModal();
+                }, 1000);
+                return false;
+            }
+            if (callback) callback();
+            return true;
+        }
+
+        settingsBtn.addEventListener('click', openSettingsModal);
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+        cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+        saveSettingsBtn.addEventListener('click', saveApiKeys);
+
+        // Initial load
+        loadApiKeys();
+        // --- End API Keys Management ---
 
         const maximizeAhliBtn = document.getElementById('maximize-ahli-btn');
         const maximizeAhliIcon = document.getElementById('maximize-ahli-icon');
@@ -907,44 +1060,95 @@
             }, 3000);
         }
 
-        const API_KEY = ""; // Kept empty as per platform runtime policy
-
         async function callTextGenerationAPI(prompt, isJson = false) {
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            if (isJson) payload.generationConfig = { responseMimeType: "application/json" };
-            
-            // Implement simple exponential backoff
-            const maxRetries = 3;
-            let delay = 1000;
-            for (let i = 0; i < maxRetries; i++) {
+            // Coba panggil Gemini terlebih dahulu
+            let finalResult = null;
+            let geminiFailed = false;
+
+            if (geminiKeys.length > 0) {
+                // Gunakan index round-robin
+                const geminiKey = geminiKeys[geminiKeyIndex % geminiKeys.length];
+                geminiKeyIndex++; // Increment untuk panggilan berikutnya
+
+                // Gunakan gemini-2.5-flash
+                const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                if (isJson) payload.generationConfig = { responseMimeType: "application/json" };
+
                 try {
-                    const response = await fetch(API_URL, {
+                    const response = await fetch(GEMINI_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    if (response.status === 429) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                        continue;
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                            finalResult = result.candidates[0].content.parts[0].text;
+                        }
+                    } else {
+                        geminiFailed = true;
+                        console.warn(`Gemini API failed with status: ${response.status}`);
                     }
-                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                    const result = await response.json();
-                    if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                        return result.candidates[0].content.parts[0].text;
-                    }
-                    throw new Error("Invalid API response format.");
                 } catch (error) {
-                    if (i === maxRetries - 1) {
-                        console.error("API Call Failed:", error);
-                        return null;
+                    geminiFailed = true;
+                    console.error("Gemini API Error:", error);
+                }
+            } else {
+                geminiFailed = true; // Tidak ada key Gemini
+            }
+
+            // Jika Gemini gagal atau key tidak ada, fallback ke Groq
+            if ((geminiFailed || !finalResult) && groqKeys.length > 0) {
+                console.log("Fallback to Groq API (llama-3.1-8b-instant)...");
+                const groqKey = groqKeys[groqKeyIndex % groqKeys.length];
+                groqKeyIndex++;
+
+                const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+                let groqPrompt = prompt;
+
+                // Groq expects prompt to specify JSON explicitly when using json_object
+                if (isJson) {
+                    groqPrompt += "\n\nRespond strictly with a valid JSON Object.";
+                }
+
+                const payload = {
+                    model: "llama-3.1-8b-instant",
+                    messages: [
+                        { role: "user", content: groqPrompt }
+                    ],
+                    temperature: 0.7
+                };
+
+                if (isJson) {
+                    payload.response_format = { type: "json_object" };
+                }
+
+                try {
+                    const response = await fetch(GROQ_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${groqKey}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.choices?.[0]?.message?.content) {
+                            finalResult = result.choices[0].message.content;
+                        }
+                    } else {
+                        console.error(`Groq API failed with status: ${response.status}`);
                     }
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2;
+                } catch (error) {
+                    console.error("Groq API Error:", error);
                 }
             }
-            return null;
+
+            return finalResult;
         }
 
         const playgroundSubmit = document.getElementById('playground-submit');
@@ -957,6 +1161,8 @@
         const outputModeSelector = document.getElementById('output-mode-selector');
 
         async function handleEvaluatorSubmit() {
+            if (!checkApiKeyRequired()) return;
+
             const promptVal = playgroundPrompt.value.trim();
             const modeInput = outputModeSelector.querySelector('input:checked');
             const targetMode = modeInput ? modeInput.value : 'Teks';
@@ -1124,6 +1330,7 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
         }
 
         async function handleExpertConsultation() {
+            if (!checkApiKeyRequired()) return;
             if (!ahliInput || !ahliSubmit || !ahliLoader) return;
             const query = ahliInput.value.trim();
             if (!query) return;
@@ -1194,6 +1401,7 @@ Berikan respons berupa HTML yang terstruktur rapi, elegan, dan profesional (tanp
 
         if (mulaiKuisBtn) {
             mulaiKuisBtn.addEventListener('click', async () => {
+                if (!checkApiKeyRequired()) return;
                 const totalQ = parseInt(jumlahSoalSelect.value) || 5;
 
                 // Verifikasi cakupan kuis
